@@ -1,16 +1,22 @@
 {
-    "name": "Sample",
-    "version": "1.0.0",
-    "manifest_version": 3,
-    "description": "Sample Chrome Extension",
-    "content_scripts": [
-        {
-            "matches": [
-                "https://www.google.com/*"
-            ],
-            "js": [
-                "content.js"
-            ]
-        }
-    ]
+  "name": "Google専用カスタム入力",
+  "version": "1.3",
+  "manifest_version": 3,
+  "description": "Googleの検索窓の入力を書き換えます。",
+  "permissions": [],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.google.com/*",
+        "https://www.google.co.jp/*"
+      ],
+      "js": ["content.js"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["words.txt"],
+      "matches": ["https://www.google.com/*", "https://www.google.co.jp/*"]
+    }
+  ]
 }
