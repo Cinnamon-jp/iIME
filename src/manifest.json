@@ -3,6 +3,13 @@
   "version": "1.0",
   "manifest_version": 3,
   "description": "Googleの検索窓の入力を書き換えます。",
+  "icons": [
+    {
+      "src": "img/icon.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    }
+  ],
   "permissions": [],
   "content_scripts": [
     {
@@ -11,8 +18,8 @@
         "https://www.google.co.jp/*"
       ],
       "js": [
-        "dictionary.js",
-        "content.js"
+        "js/dictionary.js",
+        "js/content.js"
       ]
     }
   ],
