@@ -2,14 +2,19 @@
   "name": "iIME",
   "version": "1.0",
   "manifest_version": 3,
-  "description": "Googleの検索窓の入力を書き換えます。",
-  "icons": [
-    {
-      "src": "img/icon.png",
-      "sizes": "128x128",
-      "type": "image/png"
+  "icons": {
+    "16": "img/icon.png",
+    "48": "img/icon.png",
+    "128": "img/icon.png"
+  },
+  "action": {
+    "default_icon": {
+      "16": "img/icon.png",
+      "48": "img/icon.png",
+      "128": "img/icon.png"
     }
-  ],
+  },
+  "description": "Googleの検索窓の入力を書き換えます。",
   "permissions": [],
   "content_scripts": [
     {
