@@ -1,5 +1,7 @@
 // 1. 【ひらがな辞書】
 const jpDictionary = {
+  "tsu": "つ", "chu": "ちゅ", "cha": "ちゃ", "cho": "ちょ",
+  "fa": "ふぁ", "fi": "ふぃ", "fe": "ふぇ", "fo": "ふぉ", 
   "tyu": "ちゅ", "tya": "ちゃ", "tyo": "ちょ",
   "syu": "しゅ", "sya": "しゃ", "syo": "しょ",
   "kyu": "きゅ", "kya": "きゃ", "kyo": "きょ",
@@ -12,8 +14,7 @@ const jpDictionary = {
   "jyu": "じゅ", "jya": "じゃ", "jyo": "じょ",
   "byu": "びゅ", "bya": "びゃ", "byo": "びょ",
   "pyu": "ぴゅ", "pya": "ぴゃ", "pyo": "ぴょ",
-  "tsu": "つ","chu": "ちゅ", "cha": "ちゃ", "cho": "ちょ",
-  "fa": "ふぁ", "fi": "ふぃ", "fe": "ふぇ", "fo": "ふぉ",
+
 
 
   "a": "あ", "i": "い", "u": "う", "e": "え", "o": "お",
@@ -1058,10 +1059,28 @@ function handleCustomIME(activeElement, key) {
   lastVisualLength = currentVisualText.length;
 }
 
-// アルファベットをひらがなに変換する関数
-function translateToJapanese(bufferText) {
+// ローマ字を日本語（ひらがな）に変換する関数
+function translateToJapanese(text) {
+  if (!text) return "";
+  
+  // 🌟【最重要：末尾 s ガード】
+  // 入力された文字の末尾が 's' で、かつ 's' を取り除いた部分が純粋なアルファベットの場合
+  if (text.length > 1 && text.endsWith('s')) {
+    const basePart = text.slice(0, -1);
+    // sの手前までがすべてアルファベット(a-z)なら、英語とみなして変換せずにそのまま英語として返す！
+    if (/^[a-z]+$/.test(basePart)) {
+      return text;
+    }
+  }
+
+  // 既存の英単語辞書（englishWords）にそのまま一致する場合も英語として残す
+  if (englishWords.includes(text)) {
+    return text;
+  }
+
+  // 以下は元々あなたが作った「ひらがな変換ロジック」を1文字も壊さずそのまま残しています
   let convertedText = "";
-  let tempBuffer = bufferText;
+  let tempBuffer = text;
 
   while (tempBuffer.length > 0) {
     let found = false;

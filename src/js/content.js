@@ -40,8 +40,9 @@ document.addEventListener('keydown', function (event) {
   }
 
   let key = event.key.toLowerCase();
-
-  if (event.keyCode !== 229 && key.match(/^[a-z]$/)) {
+// Shiftが押されていれば大文字、押されていなければ小文字を取得
+  key = event.shiftKey ? event.key.toUpperCase() : event.key.toLowerCase();
+  if (event.keyCode !== 229 && key.match(/^[a-zA-Z]$/)) {
     event.preventDefault();
     event.stopImmediatePropagation();
     handleCustomIME(activeElement, key);
@@ -49,10 +50,8 @@ document.addEventListener('keydown', function (event) {
   else if (event.key === ' ' || event.key === 'Enter') {
     event.preventDefault();
     event.stopImmediatePropagation();
-
     // 画面に表示されていた未確定文字（ひらがな）を一旦消去
     deleteLeftText(activeElement, lastVisualLength);
-
     // 🌟 追加：Enterキーが押されたら、カーソル位置・直前の単語を「と」⇄「to」で相互変換する
     if (event.key === 'Enter') {
       event.preventDefault();
@@ -119,15 +118,21 @@ document.addEventListener('keydown', function (event) {
     let currentText = activeElement.value;
     let isPrevSpace = currentText.length === 0 || currentText.endsWith(" ");
 
-    // 条件1: 前がスペース（または文頭）である
-    // 条件2: 今のバッファが英単語ライブラリに完全一致している
-    if (isPrevSpace && englishWords.includes(activeBuffer)) {
-      // 💡 条件をすべて満たした時のみ、アルファベット（英語）として確定！
-      insertText(activeElement, activeBuffer + (event.key === ' ' ? ' ' : ''));
-    } else {
-      // 💡 そうでなければ、100%普通の日本語（ひらがな）として確定！
-      insertText(activeElement, translateToJapanese(activeBuffer) + (event.key === ' ' ? ' ' : ''));
-    }
+   // 先頭が大文字かどうかの判定
+    const isStartWithUpper = /^[A-Z]/.test(activeBuffer);
+
+  // 条件A: 先頭が大文字である（無条件）
+  // 条件B: 前がスペース(文頭) ＆ 英単語ライブラリに一致する
+  if (
+      isStartWithUpper || 
+     (isPrevSpace && englishWords.includes(activeBuffer.toLowerCase()))
+     ) {
+  // 💡 上記のどちらかを満たせば、アルファベット（英語）として確定！
+   insertText(activeElement, activeBuffer + (event.key === ' ' ? ' ' : ''));
+   } else {
+  // 💡 それ以外は、100%普通の日本語（ひらがな）として確定！
+  insertText(activeElement, translateToJapanese(activeBuffer) + (event.key === ' ' ? ' ' : ''));
+   }
 
     // 次の入力のためにリセット
     activeBuffer = "";
