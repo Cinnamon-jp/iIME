@@ -1,4 +1,4 @@
-// タイピングした生のアルファベットを裏で記憶するバッファで----------す。
+// タイピングした生のアルファベットを裏で記憶するバッファ
 let activeBuffer = "";
 let lastVisualLength = 0;
 
@@ -40,13 +40,196 @@ document.addEventListener('keydown', function (event) {
   }
 
   let key = event.key.toLowerCase();
-// Shiftが押されていれば大文字、押されていなければ小文字を取得
-  key = event.shiftKey ? event.key.toUpperCase() : event.key.toLowerCase();
-  if (event.keyCode !== 229 && key.match(/^[a-zA-Z]$/)) {
+
+  // ========================================================
+  // 🌟【完全解決版】入力欄ごとの隠し記憶を使う相互変換システム
+  // ========================================================
+  if (event.key === 'Enter') {
+    const text = activeElement.value;
+    let selStart = activeElement.selectionStart;
+    let wordStart = selStart;
+    while (wordStart > 0 && text[wordStart - 1] !== ' ' && text[wordStart - 1] !== '\n') { wordStart--; }
+    let wordEnd = selStart;
+    while (wordEnd < text.length && text[wordEnd] !== ' ' && text[wordEnd] !== '\n') { wordEnd++; }
+    const targetWord = text.substring(wordStart, wordEnd);
+
+    if (targetWord.length > 0) {
+      let convertedWord = targetWord;
+
+      // 🧠【1番目の判定】もしこの入力欄の隠しポケットに「変換前の記憶」があるなら、それをそのまま戻す（2回目のEnter）
+      if (activeElement._lastRawInput && activeElement._lastRawInput.word === targetWord) {
+        convertedWord = activeElement._lastRawInput.raw;
+        activeElement._lastRawInput = null; // 戻したら隠しポケットを空にする
+      }
+      // 🧠【2番目の判定】隠しポケットが空なら、通常の「アルファベット ➔ 日本語」を実行して記憶する（1回目のEnter）
+      else {
+        const lowerTarget = targetWord.toLowerCase();
+        let convertedKana = "";
+        if (typeof translateToJapanese === 'function') {
+          convertedKana = translateToJapanese(lowerTarget);
+        }
+
+        if (convertedKana && convertedKana !== lowerTarget) {
+          let finalResult = "";
+          for (let i = 0; i < convertedKana.length; i++) {
+            const origChar = targetWord[i];
+            if (origChar && /[A-Z]/.test(origChar)) {
+              finalResult += origChar;
+            } else {
+              finalResult += convertedKana[i];
+            }
+          }
+          convertedWord = finalResult;
+
+          // 🌟【隠しポケットに保存】
+          // 変換後の単語（Hこんにちは）と、変換前の生の入力（Hkonnnitiha）をセットにして入力欄に持たせる
+          activeElement._lastRawInput = {
+            word: convertedWord,
+            raw: targetWord
+          };
+        }
+      }
+
+      // 画面の文字を書き換える
+      if (convertedWord !== targetWord) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        activeElement.value = text.substring(0, wordStart) + convertedWord + text.substring(wordEnd);
+        const newCursorPos = wordStart + convertedWord.length;
+        activeElement.setSelectionRange(newCursorPos, newCursorPos);
+        return;
+      }
+    }
+  }
+  // 🌟【安全な割り込み処理】Enterキーが押された時だけ、大文字キープで「と」⇄「to」や「Hえっぉ」⇄「Hello」を切り替える
+  if (event.key === 'Enter') {
+    const text = activeElement.value;
+    let selStart = activeElement.selectionStart;
+
+    // --- 🔍 ターゲットになる単語の範囲を見つける（toの時と100%同じ条件） ---
+    let wordStart = selStart;
+    let wordEnd = selStart;
+
+    if (wordStart > 0 && (text[wordStart] === ' ' || text[wordStart] === '\n' || wordStart === text.length)) {
+      while (wordStart > 0 && (text[wordStart - 1] === ' ' || text[wordStart - 1] === '\n')) {
+        wordStart--;
+      }
+    }
+
+    while (wordStart > 0 && text[wordStart - 1] !== ' ' && text[wordStart - 1] !== '\n') {
+      wordStart--;
+    }
+
+    wordEnd = wordStart;
+    while (wordEnd < text.length && text[wordEnd] !== ' ' && text[wordEnd] !== '\n') {
+      wordEnd++;
+    }
+
+    const targetWord = text.substring(wordStart, wordEnd);
+
+    // --- 🔄 相互切り替えロジック ---
+    if (targetWord.length > 0) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+      let convertedWord = targetWord;
+
+      // 1. 特別ルール：「と」⇄「to」の切り替え
+      const lowerWord = targetWord.toLowerCase().replace(/\s+/g, '');
+      if (lowerWord === 'to') {
+        convertedWord = 'と';
+      } else if (targetWord === 'と') {
+        const lastChar = wordStart > 0 ? text[wordStart - 1] : "";
+        convertedWord = /[A-Z]/.test(lastChar) ? 'To' : 'to';
+      }
+      // 2. Hello ⇄ Hえっぉ（大文字キープ）
+      // 2. Hello ⇄ Hえっぉ などの「相互」切り替え（大文字キープ）
+      else {
+        const isAlphabet = /[a-zA-Z]/.test(targetWord);
+
+        if (isAlphabet) {
+          // 【1】英語 ➔ 日本語への変換
+          // 1. 元の単語の大文字の位置（何文字目か）をすべて記録する
+          const upperIndices = [];
+          for (let i = 0; i < targetWord.length; i++) {
+            if (/[A-Z]/.test(targetWord[i])) {
+              upperIndices.push(i);
+            }
+          }
+
+          // 2. 一度すべて小文字にしてから、あなたのシステムのかな変換に通す
+          const lowerTarget = targetWord.toLowerCase();
+          const convertedKana = translateToJapanese(lowerTarget); // hello ➔ へっぉ
+
+          // 3. 変換後のひらがなに対して、元々大文字だった位置の文字を大文字アルファベットに戻す
+          let finalResult = "";
+          for (let i = 0; i < convertedKana.length; i++) {
+            if (upperIndices.includes(i)) {
+              // 元が大文字だった位置は、元のアルファベット（大文字）をそのまま差し込む
+              finalResult += targetWord[i];
+            } else {
+              finalResult += convertedKana[i];
+            }
+          }
+          convertedWord = finalResult;
+
+        } else {
+          // 【2】日本語 ➔ 英語への逆変換
+          // 💡 あなたのシステムにある「ひらがな➔ローマ字変換関数」の名前（例: translateToEnglish）に書き換えてください
+          if (typeof translateToEnglish === 'function') {
+            const convertedRomaji = translateToEnglish(targetWord); // へっぉ ➔ hello
+
+            // ※もし日本語➔英語の時も特定の位置を大文字にしたい場合はルールが必要ですが、
+            // 一旦はそのままアルファベットに戻す処理を走らせます。
+            convertedWord = convertedRomaji;
+          }
+        }
+      }
+
+      // --- 📝 画面の文字を書き換えてカーソル位置を保持 ---
+      activeElement.value = text.substring(0, wordStart) + convertedWord + text.substring(wordEnd);
+      const newCursorPos = wordStart + convertedWord.length;
+      activeElement.setSelectionRange(newCursorPos, newCursorPos);
+      return; // 💡 Enterの処理が終わったら、これ以降の元のコード（スペース判定など）は実行させずにここで終了する
+    }
+  }
+
+  if (event.keyCode !== 229 && key.match(/^[a-z]$/)) {
     event.preventDefault();
     event.stopImmediatePropagation();
-    handleCustomIME(activeElement, key);
-  }
+
+    const text = activeElement.value;
+    const selStart = activeElement.selectionStart;
+
+    // 🔍 現在入力中の単語の「開始位置」を探す
+    let wordStart = selStart;
+    while (wordStart > 0 && text[wordStart - 1] !== ' ' && text[wordStart - 1] !== '\n') {
+      wordStart--;
+    }
+
+    // 現在入力中の単語を切り出す
+    const currentWord = text.substring(wordStart, selStart);
+
+    // 🌟【最優先ルール】すでに単語内に「大文字アルファベット」があるか、今Shiftが押されている場合
+    const isEnglishWordMode = event.shiftKey || /[A-Z]/.test(currentWord);
+
+    if (isEnglishWordMode) {
+      // Shiftありなら大文字、なしなら小文字にする
+      const targetKey = event.shiftKey ? key.toUpperCase() : key.toLowerCase();
+
+      // 💡不具合の原因（日本語化）をバイパスするため、IME関数を通さずに直接文字を入力する！
+      activeElement.value = text.substring(0, selStart) + targetKey + text.substring(activeElement.selectionEnd);
+
+      // カーソル位置を1文字進める
+      const newPos = selStart + 1;
+      activeElement.setSelectionRange(newPos, newPos);
+    }
+    // 🌟 Shiftなし ＆ まだ大文字がない通常時（元の完璧な自動判定に任せる）
+    else {
+      handleCustomIME(activeElement, key);
+    }
+  } // 👈 さいごの閉じカッコ
+
   else if (event.key === ' ' || event.key === 'Enter') {
     event.preventDefault();
     event.stopImmediatePropagation();
@@ -101,8 +284,68 @@ document.addEventListener('keydown', function (event) {
           // 「と」だったら「to」にする
           convertedWord = 'to';
         } else {
-          // 「と/to」以外の単語（例: appleなど）だった場合は、何もせず処理を抜ける
-          return;
+          // 🌟「と/to」以外の一般の単語（Hello ⇄ Hえっぉ）の相互変換処理
+          const isAlphabet = /[a-zA-Z]/.test(targetWord);
+
+          if (isAlphabet) {
+            // 🅰️【アルファベット ➔ 日本語】
+            const lowerTarget = targetWord.toLowerCase();
+
+            // あなたのIMEの変換関数を使って、単語丸ごと綺麗にひらがな化
+            let convertedKana = "";
+            if (typeof translateToJapanese === 'function') {
+              convertedKana = translateToJapanese(lowerTarget); // hello ➔ へっぉ
+            }
+
+            if (convertedKana && convertedKana !== lowerTarget) {
+              // 元の単語の大文字だった位置（Hなど）を正確にキープしてドッキング
+              let finalResult = "";
+              for (let i = 0; i < convertedKana.length; i++) {
+                const origChar = targetWord[i];
+                if (origChar && /[A-Z]/.test(origChar)) {
+                  finalResult += origChar; // 元が大文字ならアルファベットのまま残す
+                } else {
+                  finalResult += convertedKana[i];
+                }
+              }
+              convertedWord = finalResult;
+            }
+          } else {
+            // 🈹【日本語 ➔ アルファベット】（逆変換）
+            // あなたが元々持っている「タイピング中の英単語の記憶（activeBuffer）」を画面に呼び戻す！
+            if (activeBuffer && activeBuffer.length > 0) {
+              convertedWord = activeBuffer;
+            } else {
+              // 💡 もし確定後などで裏の記憶がなければ、そのまま処理を抜ける
+              return;
+            }
+          }
+        }
+        // 🌟【これだけ足す】日本語からアルファベットに逆変換する
+        if (event.key === 'Enter' && !/[a-zA-Z]/.test(targetWord)) {
+          const kanaToRomajiMap = { 'あ': 'a', 'い': 'i', 'う': 'u', 'え': 'e', 'お': 'o', 'か': 'ka', 'き': 'ki', 'く': 'ku', 'け': 'ke', 'こ': 'ko', 'さ': 'sa', 'し': 'shi', 'す': 'su', 'せ': 'se', 'そ': 'so', 'た': 'ta', 'ち': 'chi', 'つ': 'tsu', 'て': 'te', 'と': 'to', 'な': 'na', 'に': 'ni', 'ぬ': 'nu', 'ね': 'ne', 'の': 'no', 'は': 'ha', 'ひ': 'hi', 'ふ': 'fu', 'へ': 'he', 'ほ': 'ho', 'ま': 'ma', 'み': 'mi', 'む': 'mu', 'め': 'me', 'も': 'mo', 'や': 'ya', 'ゆ': 'yu', 'よ': 'yo', 'ら': 'ra', 'り': 'ri', 'る': 'ru', 'れ': 're', 'ろ': 'ro', 'わ': 'wa', 'を': 'wo', 'ん': 'n', 'ぉ': 'o', 'っ': '' };
+          let finalResult = "";
+          for (let i = 0; i < targetWord.length; i++) {
+            const char = targetWord[i];
+            if (/[a-zA-Z]/.test(char)) { finalResult += char; } else {
+              let romaji = kanaToRomajiMap[char] || char;
+              if (char === 'っ' && i + 1 < targetWord.length) { const nextRomaji = kanaToRomajiMap[targetWord[i + 1]] || ""; if (nextRomaji) romaji = nextRomaji[0]; }
+              finalResult += romaji;
+            }
+          }
+          if (targetWord.includes('っ') && finalResult.toLowerCase().includes('eo')) { finalResult = finalResult.replace(/[eE][oO]/, (match) => match[0] + 'llo'); }
+          convertedWord = finalResult;
+        }
+
+        // 🌟【重要】往復（相互）で何回でも切り替えられるように、変換後の状態を裏の記憶にセットする
+        if (convertedWord !== targetWord) {
+          if (/[a-zA-Z]/.test(convertedWord)) {
+            // アルファベットに戻ったなら、次Enterを押した時のためにバッファにセット
+            activeBuffer = convertedWord;
+          } else {
+            // 日本語（Hえっぉ）に変わったなら、元のアルファベット（targetWord）を記憶に残す
+            activeBuffer = targetWord;
+          }
         }
 
         // --- 📝 テキストの置換とカーソル位置の保持 ---
