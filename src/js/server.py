@@ -36,4 +36,4 @@ def convert_text(data: RequestData):
             return {"convertedText": converted_text}
     except Exception as e:
         print("変換エラー:", e)
-        return {"convertedText": input_text}
+        return { "convertedText": input_text }
