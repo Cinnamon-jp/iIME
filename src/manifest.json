@@ -24,8 +24,8 @@
         "https://www.yahoo.co.jp/*"
       ],
       "js": [
-        "js/content3.js",
-        "js/content2.js",
+
+        "js/dictionary.js",
         "js/content.js"
       ]
     }
