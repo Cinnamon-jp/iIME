@@ -1,5 +1,5 @@
 // content3.js
-async function convertKanaToKanji(kanaText) {
+window.convertKanaToKanji = async function(kanaText) {
   if (!kanaText) return "";
 
   try {
@@ -16,10 +16,11 @@ async function convertKanaToKanji(kanaText) {
       throw new Error(`HTTP Error: ${response.status}`);
     }
 
-    const data = await response.json();
-    return data.convertedText; // 変換された漢字テキストを返す
-  } catch (error) {
+    const data = await response.json(); 
+     return data.convertedText || data.converted_text || kanaText;
+    } catch (error) {
     console.error("Python サーバー通信エラー:", error);
-    return kanaText; // エラー時はひらがなのまま返す
+
+    return kanaText;
   }
 }

@@ -10,7 +10,11 @@
         "https://www.google.com/*",
         "https://www.google.co.jp/*"
       ],
-      "js": ["content2.js"]
+      "js": [
+        "src/js/content3.js",
+        "src/js/content2.js",
+        "src/js/content.js"
+      ]
     }
   ],
   "web_accessible_resources": [

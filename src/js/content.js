@@ -42,7 +42,7 @@ document.addEventListener('keydown', function (event) {
   let key = event.key.toLowerCase();
 
   // ========================================================
-  // 🌟【完全解決版】入力欄ごとの隠し記憶を使う相互変換システム
+  // 入力欄ごとの隠し記憶を使う相互変換システム
   // ========================================================
   if (event.key === 'Enter') {
     const text = activeElement.value;
@@ -321,7 +321,7 @@ document.addEventListener('keydown', function (event) {
             }
           }
         }
-        // 🌟【これだけ足す】日本語からアルファベットに逆変換する
+        // 日本語からアルファベットに逆変換する
         if (event.key === 'Enter' && !/[a-zA-Z]/.test(targetWord)) {
           const kanaToRomajiMap = { 'あ': 'a', 'い': 'i', 'う': 'u', 'え': 'e', 'お': 'o', 'か': 'ka', 'き': 'ki', 'く': 'ku', 'け': 'ke', 'こ': 'ko', 'さ': 'sa', 'し': 'shi', 'す': 'su', 'せ': 'se', 'そ': 'so', 'た': 'ta', 'ち': 'chi', 'つ': 'tsu', 'て': 'te', 'と': 'to', 'な': 'na', 'に': 'ni', 'ぬ': 'nu', 'ね': 'ne', 'の': 'no', 'は': 'ha', 'ひ': 'hi', 'ふ': 'fu', 'へ': 'he', 'ほ': 'ho', 'ま': 'ma', 'み': 'mi', 'む': 'mu', 'め': 'me', 'も': 'mo', 'や': 'ya', 'ゆ': 'yu', 'よ': 'yo', 'ら': 'ra', 'り': 'ri', 'る': 'ru', 'れ': 're', 'ろ': 'ro', 'わ': 'wa', 'を': 'wo', 'ん': 'n', 'ぉ': 'o', 'っ': '' };
           let finalResult = "";
@@ -337,7 +337,7 @@ document.addEventListener('keydown', function (event) {
           convertedWord = finalResult;
         }
 
-        // 🌟【重要】往復（相互）で何回でも切り替えられるように、変換後の状態を裏の記憶にセットする
+        // 【重要】往復（相互）で何回でも切り替えられるように、変換後の状態を裏の記憶にセットする
         if (convertedWord !== targetWord) {
           if (/[a-zA-Z]/.test(convertedWord)) {
             // アルファベットに戻ったなら、次Enterを押した時のためにバッファにセット
@@ -372,15 +372,35 @@ document.addEventListener('keydown', function (event) {
      ) {
   // 💡 上記のどちらかを満たせば、アルファベット（英語）として確定！
    insertText(activeElement, activeBuffer + (event.key === ' ' ? ' ' : ''));
-   } else {
-  // 💡 それ以外は、100%普通の日本語（ひらがな）として確定！
-  insertText(activeElement, translateToJapanese(activeBuffer) + (event.key === ' ' ? ' ' : ''));
-   }
+   activeBuffer = "";       // 
+   lastVisualLength = 0;
+  } else {
+    // 💡 日本語判定：未確定文字の削除とバッファのリセットを「非同期通信の前」に完了させる！
+    const rawHiragana = translateToJapanese(activeBuffer);
+    const targetElement = activeElement;
+    const appendSpace = (event.key === ' ' ? ' ' : '');
 
-    // 次の入力のためにリセット
+    // 1. 画面の未確定文字を今すぐ削除
+    const currentKana = translateToJapanese(activeBuffer);
+
+    if (kanaText.length > 0) {
+      deleteLeftText(targetElement, kanaText.length);
+    }
+    
+    deleteLeftText(targetElement, currentKana.length);
+    // 2. 通信待ちになる前に、裏の記憶（バッファ）と文字カウントを即座にゼロリセット！
     activeBuffer = "";
     lastVisualLength = 0;
+
+    // 3. 準備が整ってから Python サーバーへ送信（返事を待つ）
+    chrome.runtime.sendMessage({ action: "convertKanaToKanji", kana: rawHiragana }, 
+      (response) => {
+      const convertedText = response && response.convertedText ? response.convertedText : rawHiragana;
+      // 4. 届いた漢字（＋スペース）を無事に挿入！
+      insertText(targetElement, convertedText + appendSpace);
+    });
   }
+ }
   else if (event.key === 'Backspace') {
     activeBuffer = "";
     lastVisualLength = 0;
