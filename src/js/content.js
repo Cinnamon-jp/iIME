@@ -235,6 +235,9 @@ document.addEventListener('keydown', function (event) {
     event.stopImmediatePropagation();
     activeBuffer = "";
     lastVisualLength = 0;
+    if (event.key === ' ') {
+    insertText(activeElement, " ");
+  }
     // 🌟 追加：Enterキーが押されたら、カーソル位置・直前の単語を「と」⇄「to」で相互変換する
     if (event.key === 'Enter') {
       event.preventDefault();
@@ -383,7 +386,7 @@ document.addEventListener('keydown', function (event) {
     // 1. 画面の未確定文字を今すぐ削除
     const currentKana = translateToJapanese(activeBuffer);
 
-    if (kanaText.length > 0) {
+    if (currentText.length > 0) {
       deleteLeftText(targetElement, kanaText.length);
     }
     deleteLeftText(targetElement, currentKana.length);
