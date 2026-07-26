@@ -386,7 +386,6 @@ document.addEventListener('keydown', function (event) {
     if (kanaText.length > 0) {
       deleteLeftText(targetElement, kanaText.length);
     }
-    
     deleteLeftText(targetElement, currentKana.length);
     // 2. 通信待ちになる前に、裏の記憶（バッファ）と文字カウントを即座にゼロリセット！
     activeBuffer = "";
