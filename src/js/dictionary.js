@@ -36,7 +36,7 @@ const jpDictionary = {
 
 // 2. 【英単語辞書】
 const englishWords = [
-    // --- 🌟 追加：超基本ワード（動詞・前置詞・代名詞・助動詞など） ---
+    //基本ワード（動詞・前置詞・代名詞・助動詞など） ---
     "is", "am", "are", "was", "were", "be", "been", "being",
     "do", "does", "did", "done", "doing",
     "have", "has", "had", "having",

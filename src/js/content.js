@@ -56,12 +56,12 @@ document.addEventListener('keydown', function (event) {
     if (targetWord.length > 0) {
       let convertedWord = targetWord;
 
-      // 🧠【1番目の判定】もしこの入力欄の隠しポケットに「変換前の記憶」があるなら、それをそのまま戻す（2回目のEnter）
+      // もしこの入力欄の隠しポケットに「変換前の記憶」があるなら、それをそのまま戻す（2回目のEnter）
       if (activeElement._lastRawInput && activeElement._lastRawInput.word === targetWord) {
         convertedWord = activeElement._lastRawInput.raw;
         activeElement._lastRawInput = null; // 戻したら隠しポケットを空にする
       }
-      // 🧠【2番目の判定】隠しポケットが空なら、通常の「アルファベット ➔ 日本語」を実行して記憶する（1回目のEnter）
+      // 隠しポケットが空なら、通常の「アルファベット ➔ 日本語」を実行して記憶する（1回目のEnter）
       else {
         const lowerTarget = targetWord.toLowerCase();
         let convertedKana = "";
@@ -81,7 +81,7 @@ document.addEventListener('keydown', function (event) {
           }
           convertedWord = finalResult;
 
-          // 🌟【隠しポケットに保存】
+          
           // 変換後の単語（Hこんにちは）と、変換前の生の入力（Hkonnnitiha）をセットにして入力欄に持たせる
           activeElement._lastRawInput = {
             word: convertedWord,
@@ -101,12 +101,12 @@ document.addEventListener('keydown', function (event) {
       }
     }
   }
-  // 🌟【安全な割り込み処理】Enterキーが押された時だけ、大文字キープで「と」⇄「to」や「Hえっぉ」⇄「Hello」を切り替える
+  //Enterキーが押された時だけ、大文字キープで「と」⇄「to」や「Hえっぉ」⇄「Hello」を切り替える
   if (event.key === 'Enter') {
     const text = activeElement.value;
     let selStart = activeElement.selectionStart;
 
-    // --- 🔍 ターゲットになる単語の範囲を見つける（toの時と100%同じ条件） ---
+    // --- ターゲットになる単語の範囲を見つける（toの時と100%同じ条件） ---
     let wordStart = selStart;
     let wordEnd = selStart;
 
@@ -127,7 +127,7 @@ document.addEventListener('keydown', function (event) {
 
     const targetWord = text.substring(wordStart, wordEnd);
 
-    // --- 🔄 相互切り替えロジック ---
+    // ---相互切り替えロジック ---
     if (targetWord.length > 0) {
       event.preventDefault();
       event.stopImmediatePropagation();
@@ -175,22 +175,19 @@ document.addEventListener('keydown', function (event) {
 
         } else {
           // 【2】日本語 ➔ 英語への逆変換
-          // 💡 あなたのシステムにある「ひらがな➔ローマ字変換関数」の名前（例: translateToEnglish）に書き換えてください
           if (typeof translateToEnglish === 'function') {
             const convertedRomaji = translateToEnglish(targetWord); // へっぉ ➔ hello
 
-            // ※もし日本語➔英語の時も特定の位置を大文字にしたい場合はルールが必要ですが、
-            // 一旦はそのままアルファベットに戻す処理を走らせます。
             convertedWord = convertedRomaji;
           }
         }
       }
 
-      // --- 📝 画面の文字を書き換えてカーソル位置を保持 ---
+      // ---画面の文字を書き換えてカーソル位置を保持 ---
       activeElement.value = text.substring(0, wordStart) + convertedWord + text.substring(wordEnd);
       const newCursorPos = wordStart + convertedWord.length;
       activeElement.setSelectionRange(newCursorPos, newCursorPos);
-      return; // 💡 Enterの処理が終わったら、これ以降の元のコード（スペース判定など）は実行させずにここで終了する
+      return; 
     }
   }
 
@@ -201,7 +198,7 @@ document.addEventListener('keydown', function (event) {
     const text = activeElement.value;
     const selStart = activeElement.selectionStart;
 
-    // 🔍 現在入力中の単語の「開始位置」を探す
+    // 現在入力中の単語の「開始位置」を探す
     let wordStart = selStart;
     while (wordStart > 0 && text[wordStart - 1] !== ' ' && text[wordStart - 1] !== '\n') {
       wordStart--;
@@ -210,21 +207,20 @@ document.addEventListener('keydown', function (event) {
     // 現在入力中の単語を切り出す
     const currentWord = text.substring(wordStart, selStart);
 
-    // 🌟【最優先ルール】すでに単語内に「大文字アルファベット」があるか、今Shiftが押されている場合
+    // すでに単語内に「大文字アルファベット」があるか、今Shiftが押されている場合
     const isEnglishWordMode = event.shiftKey || /[A-Z]/.test(currentWord);
 
     if (isEnglishWordMode) {
       // Shiftありなら大文字、なしなら小文字にする
       const targetKey = event.shiftKey ? key.toUpperCase() : key.toLowerCase();
 
-      // 💡不具合の原因（日本語化）をバイパスするため、IME関数を通さずに直接文字を入力する！
       activeElement.value = text.substring(0, selStart) + targetKey + text.substring(activeElement.selectionEnd);
 
       // カーソル位置を1文字進める
       const newPos = selStart + 1;
       activeElement.setSelectionRange(newPos, newPos);
     }
-    // 🌟 Shiftなし ＆ まだ大文字がない通常時（元の完璧な自動判定に任せる）
+    // Shiftなし ＆ まだ大文字がない通常時（元の完璧な自動判定に任せる）
     else {
       handleCustomIME(activeElement, key);
     }
@@ -261,7 +257,7 @@ document.addEventListener('keydown', function (event) {
     activeBuffer = "";
     lastVisualLength = 0;
   }
-    // 🌟 追加：Enterキーが押されたら、カーソル位置・直前の単語を「と」⇄「to」で相互変換する
+    // 追加：Enterキーが押されたら、カーソル位置・直前の単語を「と」⇄「to」で相互変換する
     if (event.key === 'Enter') {
       event.preventDefault();
       event.stopImmediatePropagation();
@@ -269,7 +265,7 @@ document.addEventListener('keydown', function (event) {
       const text = activeElement.value;
       let selStart = activeElement.selectionStart;
 
-      // --- 🔍 ターゲットになる単語の範囲（開始位置と終了位置）を見つける ---
+      // --- ターゲットになる単語の範囲（開始位置と終了位置）を見つける ---
       let wordStart = selStart;
       let wordEnd = selStart;
 
@@ -296,7 +292,7 @@ document.addEventListener('keydown', function (event) {
       // 切り出し対象の単語
       const targetWord = text.substring(wordStart, wordEnd);
 
-      // --- 🔄 「と」⇄「to」のシンプル変換処理 ---
+      // --- 「と」⇄「to」のシンプル変換処理 ---
       if (targetWord.length > 0) {
         let convertedWord = targetWord;
 
@@ -310,11 +306,11 @@ document.addEventListener('keydown', function (event) {
           // 「と」だったら「to」にする
           convertedWord = 'to';
         } else {
-          // 🌟「と/to」以外の一般の単語（Hello ⇄ Hえっぉ）の相互変換処理
+          // 「と/to」以外の一般の単語（Hello ⇄ Hえっぉ）の相互変換処理
           const isAlphabet = /[a-zA-Z]/.test(targetWord);
 
           if (isAlphabet) {
-            // 🅰️【アルファベット ➔ 日本語】
+            // 【アルファベット ➔ 日本語】
             const lowerTarget = targetWord.toLowerCase();
 
             // あなたのIMEの変換関数を使って、単語丸ごと綺麗にひらがな化
@@ -342,7 +338,7 @@ document.addEventListener('keydown', function (event) {
             if (activeBuffer && activeBuffer.length > 0) {
               convertedWord = activeBuffer;
             } else {
-              // 💡 もし確定後などで裏の記憶がなければ、そのまま処理を抜ける
+              // もし確定後などで裏の記憶がなければ、そのまま処理を抜ける
               return;
             }
           }
@@ -374,7 +370,7 @@ document.addEventListener('keydown', function (event) {
           }
         }
 
-        // --- 📝 テキストの置換とカーソル位置の保持 ---
+        // ---テキストの置換とカーソル位置の保持 ---
         activeElement.value = text.substring(0, wordStart) + convertedWord + text.substring(wordEnd);
 
         // カーソル位置を、変換した単語のすぐ後ろにピタッと合わせる
@@ -396,12 +392,12 @@ document.addEventListener('keydown', function (event) {
       isStartWithUpper || 
      (isPrevSpace && englishWords.includes(activeBuffer.toLowerCase()))
      ) {
-  // 💡 上記のどちらかを満たせば、アルファベット（英語）として確定！
+  // 上記のどちらかを満たせば、アルファベット（英語）として確定！
    insertText(activeElement, activeBuffer + (event.key === ' ' ? ' ' : ''));
    activeBuffer = "";       // 
    lastVisualLength = 0;
   } else {
-    // 💡 日本語判定：未確定文字の削除とバッファのリセットを「非同期通信の前」に完了させる！
+    //日本語判定：未確定文字の削除とバッファのリセットを「非同期通信の前」に完了させる！
     const rawHiragana = translateToJapanese(activeBuffer);
     const targetElement = activeElement;
     const appendSpace = (event.key === ' ' ? ' ' : '');
