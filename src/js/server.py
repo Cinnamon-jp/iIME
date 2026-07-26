@@ -30,10 +30,19 @@ def convert_text(data: RequestData):
     url = f"https://www.google.com/transliterate?langpair=ja-Hira|ja&text={encoded_text}"
     
     try:
-        with urllib.request.urlopen(url) as response:
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req) as response:
             result_data = json.loads(response.read().decode('utf-8'))
-            converted_text = "".join([entry[1][0] for entry in result_data if entry[1]])
+            
+            # APIの返り値から第1候補（最も確率の高い文字）を取り出して結合
+            converted_text = ""
+            for item in result_data:
+                if len(item) > 1 and len(item[1]) > 0:
+                    converted_text += item[1][0]
+                else:
+                    converted_text += item[0]
+                    
             return {"convertedText": converted_text}
     except Exception as e:
         print("変換エラー:", e)
-        return { "convertedText": input_text }
+        return {"convertedText": input_text}
