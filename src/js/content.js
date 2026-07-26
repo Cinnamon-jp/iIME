@@ -235,23 +235,28 @@ document.addEventListener('keydown', function (event) {
     event.stopImmediatePropagation();
   
    if (event.key === ' ') {
-    if (lastVisualLength > 0) {
-      deleteLeftText(activeElement, lastVisualLength);
-    }
+  // 1. 直前の文字状態を取得（入力中単語の直前がスペースか文頭か）
+    const currentText = activeElement.value;
+    // 画面に出ている文字（lastVisualLength）の直前の文字を確認する
+    const textBeforeWord = currentText.substring(0, activeElement.selectionStart - lastVisualLength);
+    const isPrevSpace = textBeforeWord.length === 0 || textBeforeWord.endsWith(" ") || textBeforeWord.endsWith("\n");
 
-    // 2. バッファが半角英数字のみなら英単語としてそのまま確定
-    const isEnglish = /^[a-zA-Z0-9]+$/.test(activeBuffer);
-    let textToInsert = "";
+    // 2. 「最初が大文字」または「前がスペース ＆ 辞書にある英単語」か判定
+    const isStartWithUpper = /^[A-Z]/.test(activeBuffer);
+    const isEnglishDict = typeof englishWords !== 'undefined' && englishWords.includes(activeBuffer.toLowerCase());
+    
+    const isEnglish = isStartWithUpper || (isPrevSpace && isEnglishDict);
 
     if (isEnglish && activeBuffer.length > 0) {
-      textToInsert = activeBuffer + " ";
+      // 英単語にする場合：画面の日本語（変換途中のもの）を消してアルファベットを入れる
+      if (lastVisualLength > 0) {
+        deleteLeftText(activeElement, lastVisualLength);
+      }
+      insertText(activeElement, activeBuffer + " ");
     } else {
-      textToInsert = " "; // 日本語入力時はすでに画面に漢字が出ているのでスペースのみ
+      // 日本語の場合：すでに画面に正しい文字が出ているので、消さずにスペースだけ追加
+      insertText(activeElement, " ");
     }
-
-    // 3. 確定テキストを挿入
-    insertText(activeElement, textToInsert);
-
     //りせつと!!
     activeBuffer = "";
     lastVisualLength = 0;
