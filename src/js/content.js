@@ -228,13 +228,13 @@ document.addEventListener('keydown', function (event) {
     else {
       handleCustomIME(activeElement, key);
     }
-  } // 👈 さいごの閉じカッコ
+  } // 
 
   else if (event.key === ' ' || event.key === 'Enter') {
     event.preventDefault();
     event.stopImmediatePropagation();
-    // 画面に表示されていた未確定文字（ひらがな）を一旦消去
-    deleteLeftText(activeElement, lastVisualLength);
+    activeBuffer = "";
+    lastVisualLength = 0;
     // 🌟 追加：Enterキーが押されたら、カーソル位置・直前の単語を「と」⇄「to」で相互変換する
     if (event.key === 'Enter') {
       event.preventDefault();
