@@ -1,26 +1,32 @@
-// content3.js
+// Pythonサーバーを使わず、拡張機能から直接Googleの漢字変換APIを呼ぶ関数
 window.convertKanaToKanji = async function(kanaText) {
   if (!kanaText) return "";
 
   try {
-    // Pythonサーバー(localhost:8000)へリクエストを送信
-    const response = await fetch("http://localhost:8000/convert", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ text: kanaText }),
-    });
+    // Googleの漢字変換APIへ直接リクエストを送る
+    const encodedText = encodeURIComponent(kanaText);
+    const url = `https://www.google.com/transliterate?langpair=ja-Hira|ja&text=${encodedText}`;
 
+    const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`HTTP Error: ${response.status}`);
     }
 
-    const data = await response.json(); 
-     return data.convertedText || data.converted_text || kanaText;
-    } catch (error) {
-    console.error("Python サーバー通信エラー:", error);
+    const data = await response.json();
 
-    return kanaText;
+    // 取得した変換結果（第一候補）を結合する
+    let convertedText = "";
+    for (const item of data) {
+      if (item && item[1] && item[1].length > 0) {
+        convertedText += item[1][0]; // 最高確率の漢字候補
+      } else {
+        convertedText += item[0];
+      }
+    }
+
+    return convertedText || kanaText;
+  } catch (error) {
+    console.error("漢字変換API通信エラー:", error);
+    return kanaText; // エラー時はひらがなのまま返す
   }
-}
+};
