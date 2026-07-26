@@ -391,13 +391,15 @@ document.addEventListener('keydown', function (event) {
     activeBuffer = "";
     lastVisualLength = 0;
 
-    // 3. 準備が整ってから Python サーバーへ送信（返事を待つ）
-    chrome.runtime.sendMessage({ action: "convertKanaToKanji", kana: rawHiragana }, 
-      (response) => {
-      const convertedText = response && response.convertedText ? response.convertedText : rawHiragana;
-      // 4. 届いた漢字（＋スペース）を無事に挿入！
+    // 3. 準備が整ってから Python サーバーへ送信（直接呼び出し）
+    (async () => {
+      let convertedText = rawHiragana;
+      if (typeof window.convertKanaToKanji === 'function') {
+        convertedText = await window.convertKanaToKanji(rawHiragana);
+      }
+      // 4. 届いた漢字（＋スペース）を挿入！
       insertText(targetElement, convertedText + appendSpace);
-    });
+    })();
   }
  }
   else if (event.key === 'Backspace') {
