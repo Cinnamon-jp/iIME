@@ -233,10 +233,29 @@ document.addEventListener('keydown', function (event) {
   else if (event.key === ' ' || event.key === 'Enter') {
     event.preventDefault();
     event.stopImmediatePropagation();
+  
+   if (event.key === ' ') {
+    if (lastVisualLength > 0) {
+      deleteLeftText(activeElement, lastVisualLength);
+    }
+
+    // 2. バッファが半角英数字のみなら英単語としてそのまま確定
+    const isEnglish = /^[a-zA-Z0-9]+$/.test(activeBuffer);
+    let textToInsert = "";
+
+    if (isEnglish && activeBuffer.length > 0) {
+      textToInsert = activeBuffer + " ";
+    } else {
+      textToInsert = " "; // 日本語入力時はすでに画面に漢字が出ているのでスペースのみ
+    }
+
+    // 3. 確定テキストを挿入
+    insertText(activeElement, textToInsert);
+
+    //りせつと!!
     activeBuffer = "";
     lastVisualLength = 0;
-    if (event.key === ' ') {
-    insertText(activeElement, " ");
+    }
   }
     // 🌟 追加：Enterキーが押されたら、カーソル位置・直前の単語を「と」⇄「to」で相互変換する
     if (event.key === 'Enter') {
@@ -386,10 +405,9 @@ document.addEventListener('keydown', function (event) {
     // 1. 画面の未確定文字を今すぐ削除
     const currentKana = translateToJapanese(activeBuffer);
 
-    if (currentText.length > 0) {
-      deleteLeftText(targetElement, kanaText.length);
+    if (currentKana.length > 0) {
+      deleteLeftText(targetElement, currentKana.length);
     }
-    deleteLeftText(targetElement, currentKana.length);
     // 2. 通信待ちになる前に、裏の記憶（バッファ）と文字カウントを即座にゼロリセット！
     activeBuffer = "";
     lastVisualLength = 0;
@@ -403,13 +421,12 @@ document.addEventListener('keydown', function (event) {
       // 4. 届いた漢字（＋スペース）を挿入！
       insertText(targetElement, convertedText + appendSpace);
     })();
-  }
- }
-  else if (event.key === 'Backspace') {
+  } 
+   if (event.key === 'Backspace') {
     activeBuffer = "";
     lastVisualLength = 0;
-  }
-}, true);
+   }
+  }, true);
 
 // 入力後の自動漢字変換までのウェイト用タイマー
 let debounceTimer = null;
@@ -448,15 +465,15 @@ function translateToJapanese(bufferText) {
     let found = false;
     if (tempBuffer.length >= 3) {
       const substr3 = tempBuffer.substring(0, 3);
-      if (jpDictionary[substr3]) { convertedText += jpDictionary[substr3]; tempBuffer = tempBuffer.substring(3); found = true; }
+      if (typeof jpDictionary !== 'undefined' && jpDictionary[substr3]) { convertedText += jpDictionary[substr3]; tempBuffer = tempBuffer.substring(3); found = true; }
     }
     if (!found && tempBuffer.length >= 2) {
       const substr2 = tempBuffer.substring(0, 2);
-      if (jpDictionary[substr2]) { convertedText += jpDictionary[substr2]; tempBuffer = tempBuffer.substring(2); found = true; }
+      if (typeof jpDictionary !== 'undefined' && jpDictionary[substr2]) { convertedText += jpDictionary[substr2]; tempBuffer = tempBuffer.substring(2); found = true; }
     }
     if (!found && tempBuffer.length >= 1) {
       const substr1 = tempBuffer.substring(0, 1);
-      if (jpDictionary[substr1]) { convertedText += jpDictionary[substr1]; tempBuffer = tempBuffer.substring(1); found = true; }
+      if (typeof jpDictionary !== 'undefined' && jpDictionary[substr1]) { convertedText += jpDictionary[substr1]; tempBuffer = tempBuffer.substring(1); found = true; }
     }
     if (!found) { convertedText += tempBuffer[0]; tempBuffer = tempBuffer.substring(1); }
   }
