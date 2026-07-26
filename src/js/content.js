@@ -406,17 +406,32 @@ document.addEventListener('keydown', function (event) {
   }
 }, true);
 
-// 【メインロジック：タイピング中は100%ひらがな表示】
+// 入力後の自動漢字変換までのウェイト用タイマー
+let debounceTimer = null;
+
+// 【メインロジック：タイピングと同時に高確率な漢字へ変換】
 function handleCustomIME(activeElement, key) {
   deleteLeftText(activeElement, lastVisualLength);
 
-  // 裏のバッファには生のアルファベット（helloやdayo）をしっかり記憶
   activeBuffer += key;
 
-  // 💡 タイピング中の画面表示は、常に100%日本語（ひらがな）に翻訳して出す！（デフォはひらがな）
-  let currentVisualText = translateToJapanese(activeBuffer);
-  insertText(activeElement, currentVisualText);
-  lastVisualLength = currentVisualText.length;
+  // 1. レスポンス維持のため、まずひらがなを表示
+  let currentKana = translateToJapanese(activeBuffer);
+  insertText(activeElement, currentKana);
+  lastVisualLength = currentKana.length;
+
+  // 2. 入力が一瞬止まったら（80ms後）、最高確率の漢字に置き換える
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(async () => {
+    if (typeof window.convertKanaToKanji === 'function' && currentKana.length > 0) {
+      const kanjiText = await window.convertKanaToKanji(currentKana);
+      if (kanjiText && kanjiText !== currentKana) {
+        deleteLeftText(activeElement, lastVisualLength);
+        insertText(activeElement, kanjiText);
+        lastVisualLength = kanjiText.length;
+      }
+    }
+  }, 80);
 }
 
 // アルファベットをひらがなに変換する関数
