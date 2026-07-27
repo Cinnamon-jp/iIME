@@ -41,155 +41,155 @@ document.addEventListener('keydown', function (event) {
 
   let key = event.key.toLowerCase();
 
-  // ========================================================
-  // 入力欄ごとの隠し記憶を使う相互変換システム
-  // ========================================================
-  if (event.key === 'Enter') {
-    const text = activeElement.value;
-    let selStart = activeElement.selectionStart;
-    let wordStart = selStart;
-    while (wordStart > 0 && text[wordStart - 1] !== ' ' && text[wordStart - 1] !== '\n') { wordStart--; }
-    let wordEnd = selStart;
-    while (wordEnd < text.length && text[wordEnd] !== ' ' && text[wordEnd] !== '\n') { wordEnd++; }
-    const targetWord = text.substring(wordStart, wordEnd);
+  // // ========================================================
+  // // 入力欄ごとの隠し記憶を使う相互変換システム
+  // // ========================================================
+  // if (event.key === 'Enter') {
+  //   const text = activeElement.value;
+  //   let selStart = activeElement.selectionStart;
+  //   let wordStart = selStart;
+  //   while (wordStart > 0 && text[wordStart - 1] !== ' ' && text[wordStart - 1] !== '\n') { wordStart--; }
+  //   let wordEnd = selStart;
+  //   while (wordEnd < text.length && text[wordEnd] !== ' ' && text[wordEnd] !== '\n') { wordEnd++; }
+  //   const targetWord = text.substring(wordStart, wordEnd);
 
-    if (targetWord.length > 0) {
-      let convertedWord = targetWord;
+  //   if (targetWord.length > 0) {
+  //     let convertedWord = targetWord;
 
-      // もしこの入力欄の隠しポケットに「変換前の記憶」があるなら、それをそのまま戻す（2回目のEnter）
-      if (activeElement._lastRawInput && activeElement._lastRawInput.word === targetWord) {
-        convertedWord = activeElement._lastRawInput.raw;
-        activeElement._lastRawInput = null; // 戻したら隠しポケットを空にする
-      }
-      // 隠しポケットが空なら、通常の「アルファベット ➔ 日本語」を実行して記憶する（1回目のEnter）
-      else {
-        const lowerTarget = targetWord.toLowerCase();
-        let convertedKana = "";
-        if (typeof translateToJapanese === 'function') {
-          convertedKana = translateToJapanese(lowerTarget);
-        }
+  //     // もしこの入力欄の隠しポケットに「変換前の記憶」があるなら、それをそのまま戻す（2回目のEnter）
+  //     if (activeElement._lastRawInput && activeElement._lastRawInput.word === targetWord) {
+  //       convertedWord = activeElement._lastRawInput.raw;
+  //       activeElement._lastRawInput = null; // 戻したら隠しポケットを空にする
+  //     }
+  //     // 隠しポケットが空なら、通常の「アルファベット ➔ 日本語」を実行して記憶する（1回目のEnter）
+  //     else {
+  //       const lowerTarget = targetWord.toLowerCase();
+  //       let convertedKana = "";
+  //       if (typeof translateToJapanese === 'function') {
+  //         convertedKana = translateToJapanese(lowerTarget);
+  //       }
 
-        if (convertedKana && convertedKana !== lowerTarget) {
-          let finalResult = "";
-          for (let i = 0; i < convertedKana.length; i++) {
-            const origChar = targetWord[i];
-            if (origChar && /[A-Z]/.test(origChar)) {
-              finalResult += origChar;
-            } else {
-              finalResult += convertedKana[i];
-            }
-          }
-          convertedWord = finalResult;
+  //       if (convertedKana && convertedKana !== lowerTarget) {
+  //         let finalResult = "";
+  //         for (let i = 0; i < convertedKana.length; i++) {
+  //           const origChar = targetWord[i];
+  //           if (origChar && /[A-Z]/.test(origChar)) {
+  //             finalResult += origChar;
+  //           } else {
+  //             finalResult += convertedKana[i];
+  //           }
+  //         }
+  //         convertedWord = finalResult;
 
           
-          // 変換後の単語（Hこんにちは）と、変換前の生の入力（Hkonnnitiha）をセットにして入力欄に持たせる
-          activeElement._lastRawInput = {
-            word: convertedWord,
-            raw: targetWord
-          };
-        }
-      }
+  //         // 変換後の単語（Hこんにちは）と、変換前の生の入力（Hkonnnitiha）をセットにして入力欄に持たせる
+  //         activeElement._lastRawInput = {
+  //           word: convertedWord,
+  //           raw: targetWord
+  //         };
+  //       }
+  //     }
 
-      // 画面の文字を書き換える
-      if (convertedWord !== targetWord) {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        activeElement.value = text.substring(0, wordStart) + convertedWord + text.substring(wordEnd);
-        const newCursorPos = wordStart + convertedWord.length;
-        activeElement.setSelectionRange(newCursorPos, newCursorPos);
-        return;
-      }
-    }
-  }
-  //Enterキーが押された時だけ、大文字キープで「と」⇄「to」や「Hえっぉ」⇄「Hello」を切り替える
-  if (event.key === 'Enter') {
-    const text = activeElement.value;
-    let selStart = activeElement.selectionStart;
+  //     // 画面の文字を書き換える
+  //     if (convertedWord !== targetWord) {
+  //       event.preventDefault();
+  //       event.stopImmediatePropagation();
+  //       activeElement.value = text.substring(0, wordStart) + convertedWord + text.substring(wordEnd);
+  //       const newCursorPos = wordStart + convertedWord.length;
+  //       activeElement.setSelectionRange(newCursorPos, newCursorPos);
+  //       return;
+  //     }
+  //   }
+  // }
+  // //Enterキーが押された時だけ、大文字キープで「と」⇄「to」や「Hえっぉ」⇄「Hello」を切り替える
+  // if (event.key === 'Enter') {
+  //   const text = activeElement.value;
+  //   let selStart = activeElement.selectionStart;
 
-    // --- ターゲットになる単語の範囲を見つける（toの時と100%同じ条件） ---
-    let wordStart = selStart;
-    let wordEnd = selStart;
+  //   // --- ターゲットになる単語の範囲を見つける（toの時と100%同じ条件） ---
+  //   let wordStart = selStart;
+  //   let wordEnd = selStart;
 
-    if (wordStart > 0 && (text[wordStart] === ' ' || text[wordStart] === '\n' || wordStart === text.length)) {
-      while (wordStart > 0 && (text[wordStart - 1] === ' ' || text[wordStart - 1] === '\n')) {
-        wordStart--;
-      }
-    }
+  //   if (wordStart > 0 && (text[wordStart] === ' ' || text[wordStart] === '\n' || wordStart === text.length)) {
+  //     while (wordStart > 0 && (text[wordStart - 1] === ' ' || text[wordStart - 1] === '\n')) {
+  //       wordStart--;
+  //     }
+  //   }
 
-    while (wordStart > 0 && text[wordStart - 1] !== ' ' && text[wordStart - 1] !== '\n') {
-      wordStart--;
-    }
+  //   while (wordStart > 0 && text[wordStart - 1] !== ' ' && text[wordStart - 1] !== '\n') {
+  //     wordStart--;
+  //   }
 
-    wordEnd = wordStart;
-    while (wordEnd < text.length && text[wordEnd] !== ' ' && text[wordEnd] !== '\n') {
-      wordEnd++;
-    }
+  //   wordEnd = wordStart;
+  //   while (wordEnd < text.length && text[wordEnd] !== ' ' && text[wordEnd] !== '\n') {
+  //     wordEnd++;
+  //   }
 
-    const targetWord = text.substring(wordStart, wordEnd);
+  //   const targetWord = text.substring(wordStart, wordEnd);
 
-    // ---相互切り替えロジック ---
-    if (targetWord.length > 0) {
-      event.preventDefault();
-      event.stopImmediatePropagation();
+  //   // ---相互切り替えロジック ---
+  //   if (targetWord.length > 0) {
+  //     event.preventDefault();
+  //     event.stopImmediatePropagation();
 
-      let convertedWord = targetWord;
+  //     let convertedWord = targetWord;
 
-      // 1. 特別ルール：「と」⇄「to」の切り替え
-      const lowerWord = targetWord.toLowerCase().replace(/\s+/g, '');
-      if (lowerWord === 'to') {
-        convertedWord = 'と';
-      } else if (targetWord === 'と') {
-        const lastChar = wordStart > 0 ? text[wordStart - 1] : "";
-        convertedWord = /[A-Z]/.test(lastChar) ? 'To' : 'to';
-      }
-      // 2. Hello ⇄ Hえっぉ（大文字キープ）
-      // 2. Hello ⇄ Hえっぉ などの「相互」切り替え（大文字キープ）
-      else {
-        const isAlphabet = /[a-zA-Z]/.test(targetWord);
+  //     // 1. 特別ルール：「と」⇄「to」の切り替え
+  //     const lowerWord = targetWord.toLowerCase().replace(/\s+/g, '');
+  //     if (lowerWord === 'to') {
+  //       convertedWord = 'と';
+  //     } else if (targetWord === 'と') {
+  //       const lastChar = wordStart > 0 ? text[wordStart - 1] : "";
+  //       convertedWord = /[A-Z]/.test(lastChar) ? 'To' : 'to';
+  //     }
+  //     // 2. Hello ⇄ Hえっぉ（大文字キープ）
+  //     // 2. Hello ⇄ Hえっぉ などの「相互」切り替え（大文字キープ）
+  //     else {
+  //       const isAlphabet = /[a-zA-Z]/.test(targetWord);
 
-        if (isAlphabet) {
-          // 【1】英語 ➔ 日本語への変換
-          // 1. 元の単語の大文字の位置（何文字目か）をすべて記録する
-          const upperIndices = [];
-          for (let i = 0; i < targetWord.length; i++) {
-            if (/[A-Z]/.test(targetWord[i])) {
-              upperIndices.push(i);
-            }
-          }
+  //       if (isAlphabet) {
+  //         // 【1】英語 ➔ 日本語への変換
+  //         // 1. 元の単語の大文字の位置（何文字目か）をすべて記録する
+  //         const upperIndices = [];
+  //         for (let i = 0; i < targetWord.length; i++) {
+  //           if (/[A-Z]/.test(targetWord[i])) {
+  //             upperIndices.push(i);
+  //           }
+  //         }
 
-          // 2. 一度すべて小文字にしてから、あなたのシステムのかな変換に通す
-          const lowerTarget = targetWord.toLowerCase();
-          const convertedKana = translateToJapanese(lowerTarget); // hello ➔ へっぉ
+  //         // 2. 一度すべて小文字にしてから、あなたのシステムのかな変換に通す
+  //         const lowerTarget = targetWord.toLowerCase();
+  //         const convertedKana = translateToJapanese(lowerTarget); // hello ➔ へっぉ
 
-          // 3. 変換後のひらがなに対して、元々大文字だった位置の文字を大文字アルファベットに戻す
-          let finalResult = "";
-          for (let i = 0; i < convertedKana.length; i++) {
-            if (upperIndices.includes(i)) {
-              // 元が大文字だった位置は、元のアルファベット（大文字）をそのまま差し込む
-              finalResult += targetWord[i];
-            } else {
-              finalResult += convertedKana[i];
-            }
-          }
-          convertedWord = finalResult;
+  //         // 3. 変換後のひらがなに対して、元々大文字だった位置の文字を大文字アルファベットに戻す
+  //         let finalResult = "";
+  //         for (let i = 0; i < convertedKana.length; i++) {
+  //           if (upperIndices.includes(i)) {
+  //             // 元が大文字だった位置は、元のアルファベット（大文字）をそのまま差し込む
+  //             finalResult += targetWord[i];
+  //           } else {
+  //             finalResult += convertedKana[i];
+  //           }
+  //         }
+  //         convertedWord = finalResult;
 
-        } else {
-          // 【2】日本語 ➔ 英語への逆変換
-          if (typeof translateToEnglish === 'function') {
-            const convertedRomaji = translateToEnglish(targetWord); // へっぉ ➔ hello
+  //       } else {
+  //         // 【2】日本語 ➔ 英語への逆変換
+  //         if (typeof translateToEnglish === 'function') {
+  //           const convertedRomaji = translateToEnglish(targetWord); // へっぉ ➔ hello
 
-            convertedWord = convertedRomaji;
-          }
-        }
-      }
+  //           convertedWord = convertedRomaji;
+  //         }
+  //       }
+  //     }
 
-      // ---画面の文字を書き換えてカーソル位置を保持 ---
-      activeElement.value = text.substring(0, wordStart) + convertedWord + text.substring(wordEnd);
-      const newCursorPos = wordStart + convertedWord.length;
-      activeElement.setSelectionRange(newCursorPos, newCursorPos);
-      return; 
-    }
-  }
+  //     // ---画面の文字を書き換えてカーソル位置を保持 ---
+  //     activeElement.value = text.substring(0, wordStart) + convertedWord + text.substring(wordEnd);
+  //     const newCursorPos = wordStart + convertedWord.length;
+  //     activeElement.setSelectionRange(newCursorPos, newCursorPos);
+  //     return; 
+  //   }
+  // }
 
   if (event.keyCode !== 229 && key.match(/^[a-z]$/)) {
     event.preventDefault();
@@ -226,7 +226,7 @@ document.addEventListener('keydown', function (event) {
     }
   } // 
 
-  else if (event.key === ' ' || event.key === 'Enter') {
+  else if (event.key === ' ' ) {
     event.preventDefault();
     event.stopImmediatePropagation();
   
