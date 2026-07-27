@@ -226,7 +226,7 @@ document.addEventListener('keydown', function (event) {
     }
   } // 
 
-  else if (event.key === ' ' || event.key === 'Enter') {
+  else if (event.key === ' ' ) {
     event.preventDefault();
     event.stopImmediatePropagation();
   
