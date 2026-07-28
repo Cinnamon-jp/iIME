@@ -2,14 +2,6 @@
 let activeBuffer = "";
 let lastVisualLength = 0;
 
-const searchInput = document.querySelector('input[name="q"], textarea[name="q"]');
-if (searchInput) {
-  searchInput.style.backgroundColor = 'transparent';
-  searchInput.style.borderColor = '#8ab4f8';
-  searchInput.style.borderWidth = '2px';
-  searchInput.style.boxShadow = '0 0 8px rgba(138, 180, 248, 0.5)';
-}
-
 // 全角二重入力ブロック
 document.addEventListener('input', function (event) {
   const activeElement = document.activeElement;
@@ -81,7 +73,7 @@ document.addEventListener('keydown', function (event) {
   //         }
   //         convertedWord = finalResult;
 
-          
+
   //         // 変換後の単語（Hこんにちは）と、変換前の生の入力（Hkonnnitiha）をセットにして入力欄に持たせる
   //         activeElement._lastRawInput = {
   //           word: convertedWord,
@@ -226,37 +218,37 @@ document.addEventListener('keydown', function (event) {
     }
   } // 
 
-  else if (event.key === ' ' ) {
+  else if (event.key === ' ') {
     event.preventDefault();
     event.stopImmediatePropagation();
-  
-   if (event.key === ' ') {
-  // 1. 直前の文字状態を取得（入力中単語の直前がスペースか文頭か）
-    const currentText = activeElement.value;
-    // 画面に出ている文字（lastVisualLength）の直前の文字を確認する
-    const textBeforeWord = currentText.substring(0, activeElement.selectionStart - lastVisualLength);
-    const isPrevSpace = textBeforeWord.length === 0 || textBeforeWord.endsWith(" ") || textBeforeWord.endsWith("\n");
 
-    // 2. 「最初が大文字」または「前がスペース ＆ 辞書にある英単語」か判定
-    const isStartWithUpper = /^[A-Z]/.test(activeBuffer);
-    const isEnglishDict = typeof englishWords !== 'undefined' && englishWords.includes(activeBuffer.toLowerCase());
-    
-    const isEnglish = isStartWithUpper || (isPrevSpace && isEnglishDict);
+    if (event.key === ' ') {
+      // 1. 直前の文字状態を取得（入力中単語の直前がスペースか文頭か）
+      const currentText = activeElement.value;
+      // 画面に出ている文字（lastVisualLength）の直前の文字を確認する
+      const textBeforeWord = currentText.substring(0, activeElement.selectionStart - lastVisualLength);
+      const isPrevSpace = textBeforeWord.length === 0 || textBeforeWord.endsWith(" ") || textBeforeWord.endsWith("\n");
 
-    if (isEnglish && activeBuffer.length > 0) {
-      // 英単語にする場合：画面の日本語（変換途中のもの）を消してアルファベットを入れる
-      if (lastVisualLength > 0) {
-        deleteLeftText(activeElement, lastVisualLength);
+      // 2. 「最初が大文字」または「前がスペース ＆ 辞書にある英単語」か判定
+      const isStartWithUpper = /^[A-Z]/.test(activeBuffer);
+      const isEnglishDict = typeof englishWords !== 'undefined' && englishWords.includes(activeBuffer.toLowerCase());
+
+      const isEnglish = isStartWithUpper || (isPrevSpace && isEnglishDict);
+
+      if (isEnglish && activeBuffer.length > 0) {
+        // 英単語にする場合：画面の日本語（変換途中のもの）を消してアルファベットを入れる
+        if (lastVisualLength > 0) {
+          deleteLeftText(activeElement, lastVisualLength);
+        }
+        insertText(activeElement, activeBuffer + " ");
+      } else {
+        // 日本語の場合：すでに画面に正しい文字が出ているので、消さずにスペースだけ追加
+        insertText(activeElement, " ");
       }
-      insertText(activeElement, activeBuffer + " ");
-    } else {
-      // 日本語の場合：すでに画面に正しい文字が出ているので、消さずにスペースだけ追加
-      insertText(activeElement, " ");
+      //りせつと!!
+      activeBuffer = "";
+      lastVisualLength = 0;
     }
-    //りせつと!!
-    activeBuffer = "";
-    lastVisualLength = 0;
-  }
     // 追加：Enterキーが押されたら、カーソル位置・直前の単語を「と」⇄「to」で相互変換する
     if (event.key === 'Enter') {
       event.preventDefault();
@@ -383,46 +375,46 @@ document.addEventListener('keydown', function (event) {
     let currentText = activeElement.value;
     let isPrevSpace = currentText.length === 0 || currentText.endsWith(" ");
 
-   // 先頭が大文字かどうかの判定
+    // 先頭が大文字かどうかの判定
     const isStartWithUpper = /^[A-Z]/.test(activeBuffer);
 
-  // 条件A: 先頭が大文字である（無条件）
-  // 条件B: 前がスペース(文頭) ＆ 英単語ライブラリに一致する
-  if (
-      isStartWithUpper || 
-     (isPrevSpace && englishWords.includes(activeBuffer.toLowerCase()))
-     ) {
-  // 上記のどちらかを満たせば、アルファベット（英語）として確定！
-   insertText(activeElement, activeBuffer + (event.key === ' ' ? ' ' : ''));
-   activeBuffer = "";       // 
-   lastVisualLength = 0;
-  } else {
-    //日本語判定：未確定文字の削除とバッファのリセットを「非同期通信の前」に完了させる！
-    const rawHiragana = translateToJapanese(activeBuffer);
-    const targetElement = activeElement;
-    const appendSpace = (event.key === ' ' ? ' ' : '');
+    // 条件A: 先頭が大文字である（無条件）
+    // 条件B: 前がスペース(文頭) ＆ 英単語ライブラリに一致する
+    if (
+      isStartWithUpper ||
+      (isPrevSpace && englishWords.includes(activeBuffer.toLowerCase()))
+    ) {
+      // 上記のどちらかを満たせば、アルファベット（英語）として確定！
+      insertText(activeElement, activeBuffer + (event.key === ' ' ? ' ' : ''));
+      activeBuffer = "";       // 
+      lastVisualLength = 0;
+    } else {
+      //日本語判定：未確定文字の削除とバッファのリセットを「非同期通信の前」に完了させる！
+      const rawHiragana = translateToJapanese(activeBuffer);
+      const targetElement = activeElement;
+      const appendSpace = (event.key === ' ' ? ' ' : '');
 
-    // 1. 画面の未確定文字を今すぐ削除
-    const currentKana = translateToJapanese(activeBuffer);
+      // 1. 画面の未確定文字を今すぐ削除
+      const currentKana = translateToJapanese(activeBuffer);
 
-    if (currentKana.length > 0) {
-      deleteLeftText(targetElement, currentKana.length);
-    }
-    // 2. 通信待ちになる前に、裏の記憶（バッファ）と文字カウントを即座にゼロリセット！
-    activeBuffer = "";
-    lastVisualLength = 0;
-
-    // 3. 準備が整ってから Python サーバーへ送信（直接呼び出し）
-    (async () => {
-      let convertedText = rawHiragana;
-      if (typeof window.convertKanaToKanji === 'function') {
-        convertedText = await window.convertKanaToKanji(rawHiragana);
+      if (currentKana.length > 0) {
+        deleteLeftText(targetElement, currentKana.length);
       }
-      // 4. 届いた漢字（＋スペース）を挿入！
-      insertText(targetElement, convertedText + appendSpace);
-    })();
+      // 2. 通信待ちになる前に、裏の記憶（バッファ）と文字カウントを即座にゼロリセット！
+      activeBuffer = "";
+      lastVisualLength = 0;
+
+      // 3. 準備が整ってから Python サーバーへ送信（直接呼び出し）
+      (async () => {
+        let convertedText = rawHiragana;
+        if (typeof window.convertKanaToKanji === 'function') {
+          convertedText = await window.convertKanaToKanji(rawHiragana);
+        }
+        // 4. 届いた漢字（＋スペース）を挿入！
+        insertText(targetElement, convertedText + appendSpace);
+      })();
+    }
   }
- }
   else if (event.key === 'Backspace') {
     activeBuffer = "";
     lastVisualLength = 0;
