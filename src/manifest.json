@@ -25,10 +25,10 @@
         "https://duckduckgo.com/*"
       ],
       "js": [
-
         "js/dictionary.js",
         "js/content3.js",
-        "js/content.js"
+        "js/content.js",
+        "js/style.js"
       ]
     }
   ],
