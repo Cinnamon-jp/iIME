@@ -14,17 +14,8 @@ document.addEventListener('input', function (event) {
 
   if (event.inputType === "insertCompositionText" || event.inputType === "insertText") {
     if (event.data) {
-      const rawChar = event.data;
       deleteLeftText(activeElement, event.data.length);
-      const cleanStr = rawChar.replace(/[A-Za-z0-9]/g, function (s) {
-        return String.fromCharCode(s.charCodeAt(0) - 65248);
-      }).toLowerCase();
-
-      if (/^[a-z]+$/.test(cleanStr)) {
-        for (let i = 0; i < cleanStr.length; i++) {
-          handleCustomIME(activeElement, cleanStr[i]);
-        }
-      }
+      
     }
   }
 }, true);
