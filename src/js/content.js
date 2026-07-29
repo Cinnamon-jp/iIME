@@ -7,6 +7,7 @@ let symbolCount = 0;
 let lastSymbolKey = ""; // 直前に押された記号キー（'-', '.', ','）
 let isSymbolStartFullWidth = false; // 記号開始時の直前が全角かの判定フラグ
 let lastSymbolStrLength = 0;
+let candidateIndex = 0;
 
 const symbolPairs = {
   '-': { full: 'ー', half: '-' },
@@ -53,7 +54,38 @@ document.addEventListener('keydown', function (event) {
     key = event.key.toLowerCase();
   }
 
-  if (key.match(/^[a-z\-\.\,]$/)) {
+if (event.key === 'Tab' || event.code === 'Tab') {
+    if (activeBuffer.length > 0) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      clearTimeout(debounceTimer); // 自動変換タイマーを確実に止める
+
+      const currentKana = translateToJapanese(activeBuffer);
+
+      if (typeof window.getKanjiCandidates === 'function') {
+        const requestId = ++currentRequestId;
+        window.getKanjiCandidates(currentKana).then(candidates => {
+          if (requestId !== currentRequestId) return;
+          if (candidates && candidates.length > 0) {
+            // 画面上に既に出ている文字（直前の変換漢字またはひらがな）を全削除して置き換える
+            if (lastVisualLength > 0) {
+              deleteLeftText(activeElement, lastVisualLength);
+            }
+
+            // 次の候補を取得
+            const nextCandidate = candidates[candidateIndex % candidates.length];
+            candidateIndex++;
+
+            insertText(activeElement, nextCandidate);
+            lastVisualLength = nextCandidate.length;
+          }
+        });
+      }
+    }
+    return;
+  }
+
+   else if (key.match(/^[a-z\-\.\,]$/)) {
     event.preventDefault();
     event.stopImmediatePropagation();
 
@@ -149,6 +181,8 @@ document.addEventListener('keydown', function (event) {
     }
   } // 
 
+ 
+
   else if (event.key === ' ') {
     event.preventDefault();
     event.stopImmediatePropagation();
@@ -242,24 +276,14 @@ if (isEnglishModeActive) {
 
       if (isFirstSpace) {
         // 未確定文字がある場合（1回目：確定処理）
-        if (lastVisualLength > 0) {
-          deleteLeftText(targetElement, lastVisualLength);
-        }
+        if (lastVisualLength > 0) 
         
         activeBuffer = "";
         lastVisualLength=0;
 
-        (async () => {
-          let convertedText = rawHiragana;
-          // 日本語部分のみを漢字変換へ回し、ハイフン記号列はそのまま保持する
-          if (typeof window.convertKanaToKanji === 'function' && baseBuffer.length > 0) {
-            const baseKana = translateToJapanese(baseBuffer);
-            const kanjiBase = await window.convertKanaToKanji(baseKana);
-            convertedText = kanjiBase + symbolSuffix;
-          }
-          if (requestId !== currentRequestId) return;
-          insertText(targetElement, convertedText + appendSpace);
-        })();
+       if (appendSpace) {
+         insertText(targetElement, appendSpace);
+       }
       } else {
         // すでに確定済みの場合（2回目以降：スペース入力）
         insertText(targetElement, " ");
@@ -287,6 +311,7 @@ let debounceTimer = null;
 
 // 【メインロジック：タイピングと同時に高確率な漢字へ変換】
 function handleCustomIME(activeElement, key) {
+  candidateIndex = 0;
   deleteLeftText(activeElement, lastVisualLength);
 
   activeBuffer += key;
@@ -355,3 +380,18 @@ function deleteLeftText(inputElement, count) {
   inputElement.selectionStart = inputElement.selectionEnd = start - count;
   inputElement.dispatchEvent(new Event('input', { bubbles: true }));
 }
+
+window.getKanjiCandidates = async function(kana) {
+   if (!kana) return [];
+   try {
+     const response = await fetch(`https://www.google.com/transliterate?langpair=ja-Hira|ja&text=${encodeURIComponent(kana)}`);
+     const data = await response.json();
+     // Google APIのレスポンス形式: [ [ "入力よみ", [ "候補1", "候補2", "候補3", ... ] ] ]
+     if (data && data[0] && data[0][1]) {
+       return data[0][1]; // 変換候補の配列（例: ["感じ", "漢字", "幹事", "かんじ"]）
+     }
+   } catch (error) {
+     console.error("Google IME API Error:", error);
+   }
+   return [kana]; // エラー時はひらがなを返す
+ };
