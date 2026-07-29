@@ -52,8 +52,7 @@ document.addEventListener('keydown', function (event) {
     // 現在入力中の単語を切り出す
     const currentWord = text.substring(wordStart, selStart);
 
-    // すでに単語内に「大文字アルファベット」があるか、今Shiftが押されている場合
-    const isEnglishWordMode = event.shiftKey || /[A-Z]/.test(currentWord);
+    const isEnglishWordMode = event.shiftKey || isEnglishModeActive;
 
     if (isEnglishWordMode) {
       // Shiftありなら大文字、なしなら小文字にする
