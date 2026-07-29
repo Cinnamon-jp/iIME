@@ -3,9 +3,17 @@ let activeBuffer = "";
 let lastVisualLength = 0;
 let currentRequestId = 0;
 let isEnglishModeActive = false;
-let hyphenCount = 0;
-let isHyphenStartFullWidth = false; // ハイフン開始時の直前が全角かの判定フラグ
-let lastHyphenStrLength = 0;
+let symbolCount = 0;
+let lastSymbolKey = ""; // 直前に押された記号キー（'-', '.', ','）
+let isSymbolStartFullWidth = false; // 記号開始時の直前が全角かの判定フラグ
+let lastSymbolStrLength = 0;
+let candidateIndex = 0;
+
+const symbolPairs = {
+  '-': { full: 'ー', half: '-' },
+  '.': { full: '。', half: '.' },
+  ',': { full: '、', half: ',' }
+};
 
 // 全角二重入力ブロック
 document.addEventListener('input', function (event) {
@@ -35,7 +43,38 @@ document.addEventListener('keydown', function (event) {
     key = event.key.toLowerCase();
   }
 
- if (key.match(/^[a-z\-]$/)) {
+if (event.key === 'Tab' || event.code === 'Tab') {
+    if (activeBuffer.length > 0) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      clearTimeout(debounceTimer); // 自動変換タイマーを確実に止める
+
+      const currentKana = translateToJapanese(activeBuffer);
+
+      if (typeof window.getKanjiCandidates === 'function') {
+        const requestId = ++currentRequestId;
+        window.getKanjiCandidates(currentKana).then(candidates => {
+          if (requestId !== currentRequestId) return;
+          if (candidates && candidates.length > 0) {
+            // 画面上に既に出ている文字（直前の変換漢字またはひらがな）を全削除して置き換える
+            if (lastVisualLength > 0) {
+              deleteLeftText(activeElement, lastVisualLength);
+            }
+
+            // 次の候補を取得
+            const nextCandidate = candidates[candidateIndex % candidates.length];
+            candidateIndex++;
+
+            insertText(activeElement, nextCandidate);
+            lastVisualLength = nextCandidate.length;
+          }
+        });
+      }
+    }
+    return;
+  }
+
+   else if (key.match(/^[a-z\-\.\,]$/)) {
     event.preventDefault();
     event.stopImmediatePropagation();
 
@@ -53,11 +92,11 @@ document.addEventListener('keydown', function (event) {
 
     const isEnglishWordMode = event.shiftKey || isEnglishModeActive;
 
-    if (key !== '-') {
-      hyphenCount = 0;
-      lastHyphenStrLength = 0;
-    }
-
+    if (key !== lastSymbolKey) {
+     symbolCount = 0;
+     lastSymbolStrLength = 0;
+     lastSymbolKey = key;
+   }
     // 英単語モードの場合の処理
     if (isEnglishWordMode) {
       // Shiftありなら大文字、なしなら小文字にする
@@ -75,35 +114,34 @@ document.addEventListener('keydown', function (event) {
       activeBuffer = "";
       isEnglishModeActive = true;
     }
-    // Shiftなし ＆ まだ大文字がない通常時
-    else if (key === '-') {
-      hyphenCount++;
+    else if (symbolPairs[key]) {
+     symbolCount++;
+     const pair = symbolPairs[key];
       
       // 初回入力時に、連打開始地点の直前文字が全角か判定して保持
-      if (hyphenCount === 1) {
+      if (symbolCount === 1) {
         let baseKana = translateToJapanese(activeBuffer);
         let lastChar = baseKana.length > 0 ? baseKana[baseKana.length - 1] : "";
         if (!lastChar) {
           const textBefore = activeElement.value.substring(0, activeElement.selectionStart - lastVisualLength);
           lastChar = textBefore.length > 0 ? textBefore[textBefore.length - 1] : "";
         }
-        isHyphenStartFullWidth = /[^\x01-\x7E\xA1-\xA5]/.test(lastChar);
+        isSymbolStartFullWidth = /[^\x01-\x7E\xA1-\xA5]/.test(lastChar);
       }
 
       // 回数と直前タイプに応じた記号と文字数を決定
-      const isOdd = hyphenCount % 2 !== 0;
-      const unitChar = isHyphenStartFullWidth ? (isOdd ? "ー" : "-") : (isOdd ? "-" : "ー");
-      const charAmount = Math.ceil(hyphenCount / 2);
-      const newHyphenStr = unitChar.repeat(charAmount);
+      const isOdd = symbolCount % 2 !== 0;
+      const unitChar = isSymbolStartFullWidth ? (isOdd ? pair.full : pair.half) : (isOdd ? pair.half : pair.full);
+      const charAmount = Math.ceil(symbolCount / 2);
+      const newSymbolStr = unitChar.repeat(charAmount);
 
-      const baseBuffer = activeBuffer.substring(0, activeBuffer.length - lastHyphenStrLength);
+      const baseBuffer = activeBuffer.substring(0, activeBuffer.length - lastSymbolStrLength);
       const baseKana = translateToJapanese(baseBuffer);
       
-      // 新しいハイフン記号列をバッファにセット
-      activeBuffer = baseBuffer + newHyphenStr;
-      lastHyphenStrLength = newHyphenStr.length;
-      
-      const currentKana = baseKana + newHyphenStr;
+     activeBuffer = baseBuffer + newSymbolStr;
+     lastSymbolStrLength = newSymbolStr.length;
+
+      const currentKana = baseKana + newSymbolStr;
       // 画面上の未確定描画を削除して新文字列を挿入
       deleteLeftText(activeElement, lastVisualLength);
       insertText(activeElement, currentKana);
@@ -112,14 +150,13 @@ document.addEventListener('keydown', function (event) {
       let requestId = ++currentRequestId;
       clearTimeout(debounceTimer);
       
-      // 末尾がハイフン（-）で終わっている場合は漢字変換APIへ投げずにそのまま確定維持する
-      if (!newHyphenStr.endsWith("-")) {
+      if (!Object.values(symbolPairs).some(p => newSymbolStr.endsWith(p.half))) {
         debounceTimer = setTimeout(async () => {
           if (typeof window.convertKanaToKanji === 'function' && baseKana.length > 0) {
             const kanjiText = await window.convertKanaToKanji(baseKana);
             if (requestId !== currentRequestId) return;
             if (kanjiText && kanjiText !== baseKana) {
-              const fullText = kanjiText + newHyphenStr;
+             const fullText = kanjiText + newSymbolStr;
               deleteLeftText(activeElement, lastVisualLength);
               insertText(activeElement, fullText);
               lastVisualLength = fullText.length;
@@ -134,15 +171,18 @@ document.addEventListener('keydown', function (event) {
     }
   } // 
 
+ 
+
   else if (event.key === ' ') {
     event.preventDefault();
     event.stopImmediatePropagation();
 
     clearTimeout(debounceTimer);
 
-    hyphenCount = 0;
-    const currentLastHyphenLen = lastHyphenStrLength;
-    lastHyphenStrLength = 0;
+   symbolCount = 0;
+    lastSymbolKey = "";
+    const currentLastSymbolLen = lastSymbolStrLength;
+    lastSymbolStrLength = 0;
     
     const requestId = ++currentRequestId;
 
@@ -153,7 +193,7 @@ if (isEnglishModeActive) {
       return; // 1回目はスペースを入れずに終了
     }
  
-     if (activeBuffer.length === 0 && lastVisualLength === 0) {
+     if (activeBuffer.length === 0) {
       insertText(activeElement, " ");
       activeBuffer = "";
       lastVisualLength = 0;
@@ -168,8 +208,8 @@ if (isEnglishModeActive) {
     let foundEngWord = "";
     let jpPartBuffer = "";
 
-    const baseBuffer = activeBuffer.substring(0, activeBuffer.length - currentLastHyphenLen);
-    const hyphenSuffix = activeBuffer.substring(activeBuffer.length - currentLastHyphenLen);
+    const baseBuffer = activeBuffer.substring(0, activeBuffer.length - currentLastSymbolLen);
+    const symbolSuffix = activeBuffer.substring(activeBuffer.length - currentLastSymbolLen);
 
     if (typeof englishWords !== 'undefined') {
       // 後ろから長い順に辞書とマッチするか検索
@@ -188,7 +228,7 @@ if (isEnglishModeActive) {
     const isNotJapanese = baseBuffer.length > 0 && translateToJapanese(baseBuffer) === baseBuffer;
     const isEnglishDict = typeof englishWords !== 'undefined' && englishWords.includes(activeBuffer.toLowerCase());
     const currentVisualLen = lastVisualLength
-    const isFirstSpace = activeBuffer.length > 0 || lastVisualLength > 0;
+    const isFirstSpace = activeBuffer.length > 0;
 
     // バッファ内に英単語が見つかった場合（直前スペースがなくても判定） ---
     if (foundEngWord.length > 0) {
@@ -217,7 +257,7 @@ if (isEnglishModeActive) {
       lastVisualLength = 0;
 
     } else {
-      const rawHiragana = translateToJapanese(baseBuffer) + hyphenSuffix;
+      const rawHiragana = translateToJapanese(baseBuffer) + symbolSuffix;
       const targetElement = activeElement;
 
       // 1回目(確定のみ)ならスペースを追加せず、2回目以降ならスペースを追加
@@ -226,24 +266,14 @@ if (isEnglishModeActive) {
 
       if (isFirstSpace) {
         // 未確定文字がある場合（1回目：確定処理）
-        if (lastVisualLength > 0) {
-          deleteLeftText(targetElement, lastVisualLength);
-        }
+        if (lastVisualLength > 0) 
         
         activeBuffer = "";
         lastVisualLength=0;
 
-        (async () => {
-          let convertedText = rawHiragana;
-          // 日本語部分のみを漢字変換へ回し、ハイフン記号列はそのまま保持する
-          if (typeof window.convertKanaToKanji === 'function' && baseBuffer.length > 0) {
-            const baseKana = translateToJapanese(baseBuffer);
-            const kanjiBase = await window.convertKanaToKanji(baseKana);
-            convertedText = kanjiBase + hyphenSuffix;
-          }
-          if (requestId !== currentRequestId) return;
-          insertText(targetElement, convertedText + appendSpace);
-        })();
+       if (appendSpace) {
+         insertText(targetElement, appendSpace);
+       }
       } else {
         // すでに確定済みの場合（2回目以降：スペース入力）
         insertText(targetElement, " ");
@@ -260,8 +290,9 @@ if (isEnglishModeActive) {
     activeBuffer = "";
     lastVisualLength = 0;
     isEnglishModeActive = false;
-    hyphenCount = 0;
-    lastHyphenStrLength = 0;
+    symbolCount = 0;
+    lastSymbolKey = "";
+    lastSymbolStrLength = 0;
   }
 }, true);
 
@@ -270,6 +301,7 @@ let debounceTimer = null;
 
 // 【メインロジック：タイピングと同時に高確率な漢字へ変換】
 function handleCustomIME(activeElement, key) {
+  candidateIndex = 0;
   deleteLeftText(activeElement, lastVisualLength);
 
   activeBuffer += key;
@@ -327,6 +359,7 @@ function insertText(inputElement, text) {
   const value = inputElement.value;
   inputElement.value = value.substring(0, start) + text + value.substring(end);
   inputElement.selectionStart = inputElement.selectionEnd = start + text.length;
+  inputElement.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
 function deleteLeftText(inputElement, count) {
@@ -335,7 +368,23 @@ function deleteLeftText(inputElement, count) {
   const value = inputElement.value;
   inputElement.value = value.substring(0, start - count) + value.substring(start);
   inputElement.selectionStart = inputElement.selectionEnd = start - count;
+  inputElement.dispatchEvent(new Event('input', { bubbles: true }));
 }
+
+window.getKanjiCandidates = async function(kana) {
+   if (!kana) return [];
+   try {
+     const response = await fetch(`https://www.google.com/transliterate?langpair=ja-Hira|ja&text=${encodeURIComponent(kana)}`);
+     const data = await response.json();
+     // Google APIのレスポンス形式: [ [ "入力よみ", [ "候補1", "候補2", "候補3", ... ] ] ]
+     if (data && data[0] && data[0][1]) {
+       return data[0][1]; // 変換候補の配列（例: ["感じ", "漢字", "幹事", "かんじ"]）
+     }
+   } catch (error) {
+     console.error("Google IME API Error:", error);
+   }
+   return [kana]; // エラー時はひらがなを返す
+ };
 
 // すべての記憶をノートから消去してリセットする命令
 function clearAllBuffers() {
