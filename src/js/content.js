@@ -336,3 +336,14 @@ function deleteLeftText(inputElement, count) {
   inputElement.value = value.substring(0, start - count) + value.substring(start);
   inputElement.selectionStart = inputElement.selectionEnd = start - count;
 }
+
+// すべての記憶をノートから消去してリセットする命令
+function clearAllBuffers() {
+  clearTimeout(debounceTimer); // 漢字変換のタイマーを止める
+  activeBuffer = "";           // ノートを空にする
+  lastVisualLength = 0;        // 画面の文字数の記憶も0に
+  isEnglishModeActive = false;
+  hyphenCount = 0;
+  lastHyphenStrLength = 0;
+  currentRequestId++;          // 変換IDを進めて、遅れてやってくる漢字変換を無視する
+}
