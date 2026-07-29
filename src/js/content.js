@@ -1,6 +1,7 @@
 // タイピングした生のアルファベットを裏で記憶するバッファ
 let activeBuffer = "";
 let lastVisualLength = 0;
+let currentRequestId = 0;
 
 // 全角二重入力ブロック
 document.addEventListener('input', function (event) {
@@ -74,8 +75,10 @@ document.addEventListener('keydown', function (event) {
     event.stopImmediatePropagation();
 
     clearTimeout(debounceTimer);
-
-    if (activeBuffer.length === 0 && lastVisualLength === 0) {
+    
+    const requestId = ++currentRequestId;
+ 
+     if (activeBuffer.length === 0 && lastVisualLength === 0) {
       insertText(activeElement, " ");
       return;
     }
@@ -155,6 +158,7 @@ document.addEventListener('keydown', function (event) {
           if (typeof window.convertKanaToKanji === 'function') {
             convertedText = await window.convertKanaToKanji(rawHiragana);
           }
+          if (requestId !== currentRequestId) return;
           insertText(targetElement, convertedText + appendSpace);
         })();
       } else {
@@ -168,6 +172,8 @@ document.addEventListener('keydown', function (event) {
    
   }
   else if (event.key === 'Backspace') {
+    clearTimeout(debounceTimer);
+    currentRequestId++;
     activeBuffer = "";
     lastVisualLength = 0;
   }
@@ -186,12 +192,15 @@ function handleCustomIME(activeElement, key) {
   let currentKana = translateToJapanese(activeBuffer);
   insertText(activeElement, currentKana);
   lastVisualLength = currentKana.length;
+  
+  let requestId = ++currentRequestId;
 
   // 2. 入力が一瞬止まったら（80ms後）、最高確率の漢字に置き換える
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(async () => {
     if (typeof window.convertKanaToKanji === 'function' && currentKana.length > 0) {
       const kanjiText = await window.convertKanaToKanji(currentKana);
+      if (requestId !== currentRequestId) return;
       if (kanjiText && kanjiText !== currentKana) {
         deleteLeftText(activeElement, lastVisualLength);
         insertText(activeElement, kanjiText);
