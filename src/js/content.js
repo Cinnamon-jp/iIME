@@ -15,7 +15,6 @@ document.addEventListener('input', function (event) {
   if (event.inputType === "insertCompositionText" || event.inputType === "insertText") {
     if (event.data) {
       deleteLeftText(activeElement, event.data.length);
-      
     }
   }
 }, true);
@@ -28,11 +27,11 @@ document.addEventListener('keydown', function (event) {
   if (event.ctrlKey || event.metaKey) {
     return;
   }
-
+  //event.codeはKeyAのような形式、event.keyはaのような形式
   let key = "";
   if (event.code && event.code.startsWith("Key")) {
-    key = event.code.replace("Key", "").toLowerCase();
-  } else {
+    key = event.code.replace("Key", "").toLowerCase();//Keyを除去してアルファベットのみに
+  } else {//アルファベット以外のキーはevent.keyを使う
     key = event.key.toLowerCase();
   }
 
@@ -59,6 +58,7 @@ document.addEventListener('keydown', function (event) {
       lastHyphenStrLength = 0;
     }
 
+    // 英単語モードの場合の処理
     if (isEnglishWordMode) {
       // Shiftありなら大文字、なしなら小文字にする
       const targetKey = event.shiftKey ? key.toUpperCase() : key.toLowerCase();
