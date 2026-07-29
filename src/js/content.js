@@ -17,7 +17,6 @@ document.addEventListener('input', function (event) {
         return String.fromCharCode(s.charCodeAt(0) - 65248);
       }).toLowerCase();
 
-      // ★ アルファベット列であれば1文字ずつ分解して自作IMEルーチンに通し直す
       if (/^[a-z]+$/.test(cleanStr)) {
         for (let i = 0; i < cleanStr.length; i++) {
           handleCustomIME(activeElement, cleanStr[i]);
