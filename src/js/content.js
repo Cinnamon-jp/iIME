@@ -2,6 +2,7 @@
 let activeBuffer = "";
 let lastVisualLength = 0;
 let currentRequestId = 0;
+let isEnglishModeActive = false;
 
 // 全角二重入力ブロック
 document.addEventListener('input', function (event) {
@@ -58,11 +59,17 @@ document.addEventListener('keydown', function (event) {
       // Shiftありなら大文字、なしなら小文字にする
       const targetKey = event.shiftKey ? key.toUpperCase() : key.toLowerCase();
 
+      activeElement.spellcheck = false;
+
       activeElement.value = text.substring(0, selStart) + targetKey + text.substring(activeElement.selectionEnd);
 
       // カーソル位置を1文字進める
       const newPos = selStart + 1;
       activeElement.setSelectionRange(newPos, newPos);
+
+      lastVisualLength = 0;
+      activeBuffer = "";
+      isEnglishModeActive = true;
     }
     // Shiftなし ＆ まだ大文字がない通常時（元の完璧な自動判定に任せる）
     else {
@@ -77,9 +84,18 @@ document.addEventListener('keydown', function (event) {
     clearTimeout(debounceTimer);
     
     const requestId = ++currentRequestId;
+
+if (isEnglishModeActive) {
+      isEnglishModeActive = false; // フラグを解除（これで通常モードに戻る）
+      activeBuffer = "";
+      lastVisualLength = 0;
+      return; // 1回目はスペースを入れずに終了
+    }
  
      if (activeBuffer.length === 0 && lastVisualLength === 0) {
       insertText(activeElement, " ");
+      activeBuffer = "";
+      lastVisualLength = 0;
       return;
     }
 
@@ -176,6 +192,7 @@ document.addEventListener('keydown', function (event) {
     currentRequestId++;
     activeBuffer = "";
     lastVisualLength = 0;
+    isEnglishModeActive = false;
   }
 }, true);
 
