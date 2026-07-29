@@ -85,23 +85,49 @@ document.addEventListener('keydown', function (event) {
     // 画面に出ている文字（lastVisualLength）の直前の文字を確認する
     const textBeforeWord = currentText.substring(0, activeElement.selectionStart - lastVisualLength);
     const isPrevSpace = textBeforeWord.length === 0 || textBeforeWord.endsWith(" ") || textBeforeWord.endsWith("\n");
+    let foundEngWord = "";
+    let jpPartBuffer = "";
 
+    if (typeof englishWords !== 'undefined') {
+      // 後ろから長い順に辞書とマッチするか検索
+      for (let i = 0; i < activeBuffer.length; i++) {
+        const sub = activeBuffer.substring(i).toLowerCase();
+        const minLength = (i === 0) ? 1 : 3;
+        if (sub.length >= minLength && englishWords.includes(sub)) {
+          foundEngWord = sub;
+          jpPartBuffer = activeBuffer.substring(0, i); // 英単語より前の部分
+          break;
+        }
+      }
+    }
     // 2. 「最初が大文字」または「前がスペース ＆ 辞書にある英単語」か判定
     const isStartWithUpper = /^[A-Z]/.test(activeBuffer);
-    const isEnglishDict = typeof englishWords !== 'undefined' && englishWords.includes(activeBuffer.toLowerCase());
-
     const isNotJapanese = translateToJapanese(activeBuffer) === activeBuffer;
-
-    const isEnglish = isStartWithUpper || (isPrevSpace && isEnglishDict) || isNotJapanese;
-
+    const isEnglishDict = typeof englishWords !== 'undefined' && englishWords.includes(activeBuffer.toLowerCase());
+    const currentVisualLen = lastVisualLength
     const isFirstSpace = activeBuffer.length > 0 || lastVisualLength > 0;
+    
+    // --- 【分岐 A】バッファ内に英単語が見つかった場合（直前スペースがなくても判定） ---
+    if (foundEngWord.length > 0) {
+      // 画面上の未確定テキストを削除
+      deleteLeftText(activeElement, lastVisualLength);
 
-    if (isEnglish && activeBuffer.length > 0) {
+      // 前半の日本語部分があれば変換（無ければ空文字）
+      const jpConverted = jpPartBuffer ? translateToJapanese(jpPartBuffer) : "";
+      
+      // 日本語部分 + 検出された英単語 を結合して挿入
+      const resultText = jpConverted + foundEngWord;
+      insertText(activeElement, resultText + (isFirstSpace ? "" : " "));
+
+      activeBuffer = "";
+      lastVisualLength = 0;
+    }
+
+    else if ((isStartWithUpper || (isPrevSpace && isEnglishDict) || isNotJapanese) && activeBuffer.length > 0) {
 
       deleteLeftText(activeElement, lastVisualLength);
 
-      const shouldAddSpace = !isFirstSpace || isNotJapanese;
-      // 1回目(確定のみ)ならスペースを追加せず、2回目以降ならスペースを追加
+            // 1回目(確定のみ)ならスペースを追加せず、2回目以降ならスペースを追加
       insertText(activeElement, activeBuffer + (isFirstSpace ? "" : " "));
 
       activeBuffer = "";
@@ -113,16 +139,16 @@ document.addEventListener('keydown', function (event) {
 
       // 1回目(確定のみ)ならスペースを追加せず、2回目以降ならスペースを追加
       const appendSpace = isFirstSpace ? "" : " ";
+      
 
       if (isFirstSpace) {
         // 未確定文字がある場合（1回目：確定処理）
         if (lastVisualLength > 0) {
           deleteLeftText(targetElement, lastVisualLength);
         }
-
-        //りせつと!!
+        
         activeBuffer = "";
-        lastVisualLength = 0;
+        lastVisualLength=0;
 
         (async () => {
           let convertedText = rawHiragana;
