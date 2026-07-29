@@ -10,16 +10,19 @@ document.addEventListener('input', function (event) {
   if (!activeElement || (activeElement.tagName !== 'INPUT' && activeElement.tagName !== 'TEXTAREA')) return;
 
   if (event.inputType === "insertCompositionText" || event.inputType === "insertText") {
-    let rawChar = event.data;
-    if (!rawChar) return;
+    if (event.data) {
+      const rawChar = event.data;
+      deleteLeftText(activeElement, event.data.length);
+      const cleanStr = rawChar.replace(/[A-Za-z0-9]/g, function (s) {
+        return String.fromCharCode(s.charCodeAt(0) - 65248);
+      }).toLowerCase();
 
-    let key = rawChar.replace(/[A-Za-z0-9]/g, function (s) {
-      return String.fromCharCode(s.charCodeAt(0) - 65248);
-    }).toLowerCase();
-
-    if (key.match(/^[a-z]$/)) {
-      deleteLeftText(activeElement, rawChar.length);
-      handleCustomIME(activeElement, key);
+      // ★ アルファベット列であれば1文字ずつ分解して自作IMEルーチンに通し直す
+      if (/^[a-z]+$/.test(cleanStr)) {
+        for (let i = 0; i < cleanStr.length; i++) {
+          handleCustomIME(activeElement, cleanStr[i]);
+        }
+      }
     }
   }
 }, true);
@@ -33,10 +36,14 @@ document.addEventListener('keydown', function (event) {
     return;
   }
 
-  let key = event.key.toLowerCase();
+  let key = "";
+  if (event.code && event.code.startsWith("Key")) {
+    key = event.code.replace("Key", "").toLowerCase();
+  } else {
+    key = event.key.toLowerCase();
+  }
 
-  
-  if (event.keyCode !== 229 && key.match(/^[a-z]$/)) {
+  if (key.match(/^[a-z]$/)) {
     event.preventDefault();
     event.stopImmediatePropagation();
 
