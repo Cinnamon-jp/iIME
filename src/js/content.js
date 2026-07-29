@@ -284,6 +284,12 @@ if (isEnglishModeActive) {
 
    
   }
+
+  //Enterキーで全ての記憶を消去してリセットする
+  else if (event.key === 'Enter') {
+    clearAllBuffers();
+  }
+
   else if (event.key === 'Backspace') {
     clearTimeout(debounceTimer);
     currentRequestId++;
