@@ -12,7 +12,46 @@ let candidateIndex = 0;
 const symbolPairs = {
   '-': { full: 'ー', half: '-' },
   '.': { full: '。', half: '.' },
-  ',': { full: '、', half: ',' }
+  ',': { full: '、', half: ',' },
+  '!': { full: '！', half: '!' },  
+  '"': { full: '”', half: '"' },  
+  '#': { full: '＃', half: '#' },
+  '$': { full: '$', half: '$' },
+  '%': { full: '％', half: '%' },
+  '&': { full: '＆', half: '&' },
+  '\'': { full: '’', half: '\'' },
+  '(': { full: '（', half: '(' },  
+  ')': { full: '）', half: ')' },  
+  '=': { full: '＝', half: '=' },  
+  '~': { full: '〜', half: '~' },
+  '?': { full: '？', half: '?' },
+  ':': { full: '：', half: ':' },
+  '*': { full: '＊', half: '*' },
+  '+': { full: '＋', half: '+' },
+  '<': { full: '＜', half: '<' },
+  '>': { full: '＞', half: '>' },
+  '@': { full: '＠', half: '@' },
+  '`': { full: '`', half: '`' },  
+  '[': { full: '「', half: '[' },
+  ']': { full: '」', half: ']' },
+  '{': { full: '『', half: '{' },
+  '}': { full: '』', half: '}' },
+  '\\': { full: '￥', half: '\\' },
+  '|': { full: '｜', half: '|' },
+  '^': { full: '＾', half: '^' },
+  '_': { full: '＿', half: '_' },
+  '/': { full: '・', half: '/' },
+  ';': { full: '；', half: ';' },
+  '0': { full: '０', half: '0' },
+  '1': { full: '１', half: '1' },
+  '2': { full: '２', half: '2' },
+  '3': { full: '３', half: '3' },
+  '4': { full: '４', half: '4' },
+  '5': { full: '５', half: '5' },
+  '6': { full: '６', half: '6' },
+  '7': { full: '７', half: '7' },
+  '8': { full: '８', half: '8' },
+  '9': { full: '９', half: '9' },
 };
 
 // 全角二重入力ブロック
@@ -40,7 +79,7 @@ document.addEventListener('keydown', function (event) {
   if (event.code && event.code.startsWith("Key")) {
     key = event.code.replace("Key", "").toLowerCase();//Keyを除去してアルファベットのみに
   } else {//アルファベット以外のキーはevent.keyを使う
-    key = event.key.toLowerCase();
+   key = event.key;
   }
 
 if (event.key === 'Tab' || event.code === 'Tab') {
@@ -74,7 +113,7 @@ if (event.key === 'Tab' || event.code === 'Tab') {
     return;
   }
 
-   else if (key.match(/^[a-z\-\.\,]$/)) {
+  else if (key.match(/^[a-z0-9]$/) || symbolPairs[key]) {
     event.preventDefault();
     event.stopImmediatePropagation();
 
@@ -90,12 +129,13 @@ if (event.key === 'Tab' || event.code === 'Tab') {
     // 現在入力中の単語を切り出す
     const currentWord = text.substring(wordStart, selStart);
 
-    const isEnglishWordMode = event.shiftKey || isEnglishModeActive;
+    const isEnglishWordMode = (event.shiftKey && !symbolPairs[key]) || isEnglishModeActive;
 
-    if (key !== lastSymbolKey) {
+    const currentSymbolSymbolKey = (event.shiftKey ? 'Shift+' : '') + key;
+   if (currentSymbolSymbolKey !== lastSymbolKey) {
      symbolCount = 0;
      lastSymbolStrLength = 0;
-     lastSymbolKey = key;
+     lastSymbolKey = currentSymbolSymbolKey;
    }
     // 英単語モードの場合の処理
     if (isEnglishWordMode) {
@@ -114,7 +154,7 @@ if (event.key === 'Tab' || event.code === 'Tab') {
       activeBuffer = "";
       isEnglishModeActive = true;
     }
-    else if (symbolPairs[key]) {
+    else if (symbolPairs[key] && key in symbolPairs) {
      symbolCount++;
      const pair = symbolPairs[key];
       
@@ -131,7 +171,8 @@ if (event.key === 'Tab' || event.code === 'Tab') {
 
       // 回数と直前タイプに応じた記号と文字数を決定
       const isOdd = symbolCount % 2 !== 0;
-      const unitChar = isSymbolStartFullWidth ? (isOdd ? pair.full : pair.half) : (isOdd ? pair.half : pair.full);
+      const currentType = isSymbolStartFullWidth ? (isOdd ? 'full' : 'half') : (isOdd ? 'half' : 'full');
+      const unitChar = pair[currentType];
       const charAmount = Math.ceil(symbolCount / 2);
       const newSymbolStr = unitChar.repeat(charAmount);
 
