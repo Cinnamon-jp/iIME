@@ -169,7 +169,7 @@ if (isEnglishModeActive) {
       return; // 1回目はスペースを入れずに終了
     }
  
-     if (activeBuffer.length === 0 && lastVisualLength === 0) {
+     if (activeBuffer.length === 0) {
       insertText(activeElement, " ");
       activeBuffer = "";
       lastVisualLength = 0;
@@ -204,7 +204,7 @@ if (isEnglishModeActive) {
     const isNotJapanese = baseBuffer.length > 0 && translateToJapanese(baseBuffer) === baseBuffer;
     const isEnglishDict = typeof englishWords !== 'undefined' && englishWords.includes(activeBuffer.toLowerCase());
     const currentVisualLen = lastVisualLength
-    const isFirstSpace = activeBuffer.length > 0 || lastVisualLength > 0;
+    const isFirstSpace = activeBuffer.length > 0;
 
     // バッファ内に英単語が見つかった場合（直前スペースがなくても判定） ---
     if (foundEngWord.length > 0) {
@@ -344,6 +344,7 @@ function insertText(inputElement, text) {
   const value = inputElement.value;
   inputElement.value = value.substring(0, start) + text + value.substring(end);
   inputElement.selectionStart = inputElement.selectionEnd = start + text.length;
+  inputElement.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
 function deleteLeftText(inputElement, count) {
@@ -352,4 +353,5 @@ function deleteLeftText(inputElement, count) {
   const value = inputElement.value;
   inputElement.value = value.substring(0, start - count) + value.substring(start);
   inputElement.selectionStart = inputElement.selectionEnd = start - count;
+  inputElement.dispatchEvent(new Event('input', { bubbles: true }));
 }
