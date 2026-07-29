@@ -18,11 +18,8 @@
   "permissions": [],
   "content_scripts": [
     {
-      "matches": [
-        "https://www.google.com/*",
-        "https://www.google.co.jp/*",
-        "https://www.yahoo.co.jp/*",
-        "https://duckduckgo.com/*"
+     "matches": [
+        "<all_urls>"
       ],
       "js": [
         "js/dictionary.js",
@@ -38,11 +35,8 @@
         "words.txt"
       ],
       "matches": [
-        "https://www.google.com/*",
-        "https://www.google.co.jp/*",
-        "https://www.yahoo.co.jp/*",
-        "https://duckduckgo.com/*"
-      ]
+       "<all_urls>"
+     ]
     }
   ]
 }
