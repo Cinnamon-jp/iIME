@@ -231,6 +231,7 @@ if (isEnglishModeActive) {
       isEnglishModeActive = false; // フラグを解除（これで通常モードに戻る）
       activeBuffer = "";
       lastVisualLength = 0;
+      if (typeof window.triggerGlow === 'function') window.triggerGlow(activeElement);
       return; // 1回目はスペースを入れずに終了
     }
  
@@ -285,6 +286,7 @@ if (isEnglishModeActive) {
 
       activeBuffer = "";
       lastVisualLength = 0;
+      if (typeof window.triggerGlow === 'function') window.triggerGlow(activeElement);
     }
 
    else if ((isStartWithUpper || (isPrevSpace && isEnglishDict) || isNotJapanese) && activeBuffer.length > 0) {
@@ -296,6 +298,7 @@ if (isEnglishModeActive) {
 
       activeBuffer = "";
       lastVisualLength = 0;
+      if (typeof window.triggerGlow === 'function') window.triggerGlow(activeElement);
 
     } else {
       const rawHiragana = translateToJapanese(baseBuffer) + symbolSuffix;
@@ -307,7 +310,7 @@ if (isEnglishModeActive) {
 
       if (isFirstSpace) {
         // 未確定文字がある場合（1回目：確定処理）
-        if (lastVisualLength > 0) 
+        if (lastVisualLength > 0 && typeof window.triggerGlow === 'function') window.triggerGlow(targetElement);
         
         activeBuffer = "";
         lastVisualLength=0;
@@ -328,6 +331,7 @@ if (isEnglishModeActive) {
 
   //Enterキーで全ての記憶を消去してリセットする
   else if (event.key === 'Enter') {
+    if (activeBuffer.length > 0 && typeof window.triggerGlow === 'function') window.triggerGlow(activeElement);
     clearAllBuffers();
   }
 
