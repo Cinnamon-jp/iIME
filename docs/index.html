@@ -18,23 +18,53 @@
     </header>
 
     <main class="demo-section">
-      <div class="input-wrapper">
-        <input 
-          type="text" 
-          id="search-input" 
-          name="q" 
-          class="demo-input" 
-          placeholder="ローマ字を入力（例: kanji, nihongo, arigatou）"
-          autocomplete="off"
-          autofocus
-        >
-      </div>
-      <div class="hint-container">
-        <span class="hint-item"><kbd>Tab</kbd> 候補切替</span>
-        <span class="hint-divider">•</span>
-        <span class="hint-item"><kbd>Space</kbd> 変換を確定</span>
-        <span class="hint-divider">•</span>
-        <span class="hint-item"><kbd>Enter</kbd> 文字列を確定</span>
+      <div class="demo-grid">
+        <!-- iIME あり -->
+        <div class="input-card">
+          <div class="card-header">
+            <span class="card-badge badge-active">iIME あり</span>
+            <span class="card-desc">自動かな漢字変換</span>
+          </div>
+          <div class="input-wrapper">
+            <input 
+              type="text" 
+              id="search-input" 
+              name="q" 
+              class="demo-input ime-enabled" 
+              placeholder="半角ローマ字を入力"
+              autocomplete="off"
+              autofocus
+            >
+          </div>
+          <div class="hint-container">
+            <span class="hint-item"><kbd>Tab</kbd> 候補切替</span>
+            <span class="hint-divider">•</span>
+            <span class="hint-item"><kbd>Space</kbd> 変換確定</span>
+            <span class="hint-divider">•</span>
+            <span class="hint-item"><kbd>Enter</kbd> 確定</span>
+          </div>
+        </div>
+
+        <!-- iIME なし -->
+        <div class="input-card">
+          <div class="card-header">
+            <span class="card-badge badge-normal">iIME なし</span>
+            <span class="card-desc">普通のテキスト入力</span>
+          </div>
+          <div class="input-wrapper">
+            <input 
+              type="text" 
+              id="normal-input" 
+              name="q_normal" 
+              class="demo-input" 
+              placeholder="通常のテキストを入力"
+              autocomplete="off"
+            >
+          </div>
+          <div class="hint-container">
+            <span class="hint-item"><kbd>Enter</kbd> 確定</span>
+          </div>
+        </div>
       </div>
     </main>
   </div>

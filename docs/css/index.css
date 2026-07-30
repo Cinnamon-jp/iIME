@@ -34,7 +34,7 @@ body {
 
 .container {
   width: 100%;
-  max-width: 680px;
+  max-width: 880px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -105,6 +105,59 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 20px;
+}
+
+.demo-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .demo-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+.input-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 4px;
+}
+
+.card-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  padding: 3px 10px;
+  border-radius: 12px;
+}
+
+.badge-active {
+  background-color: var(--accent-color);
+  color: #ffffff;
+}
+
+.badge-normal {
+  background-color: #e6dfd5;
+  color: var(--text-muted);
+}
+
+.card-desc {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  letter-spacing: 0.03em;
 }
 
 .input-wrapper {
