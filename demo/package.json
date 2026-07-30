@@ -1,0 +1,13 @@
+{
+  "name": "demo",
+  "version": "1.0.0",
+  "description": "Minimal Hello World Web Application",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "js/index.js",
+  "scripts": {
+    "start": "serve .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
