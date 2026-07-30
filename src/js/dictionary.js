@@ -1,4 +1,50 @@
-// 1. 【ひらがな辞書】
+// 1. 【記号ペア辞書】
+const symbolPairs = {
+  '-': { full: 'ー', half: '-' },
+  '.': { full: '。', half: '.' },
+  ',': { full: '、', half: ',' },
+  '!': { full: '！', half: '!' },
+  '"': { full: '”', half: '"' },
+  '#': { full: '＃', half: '#' },
+  '$': { full: '$', half: '$' },
+  '%': { full: '％', half: '%' },
+  '&': { full: '＆', half: '&' },
+  '\'': { full: '’', half: '\'' },
+  '(': { full: '（', half: '(' },
+  ')': { full: '）', half: ')' },
+  '=': { full: '＝', half: '=' },
+  '~': { full: '〜', half: '~' },
+  '?': { full: '？', half: '?' },
+  ':': { full: '：', half: ':' },
+  '*': { full: '＊', half: '*' },
+  '+': { full: '＋', half: '+' },
+  '<': { full: '＜', half: '<' },
+  '>': { full: '＞', half: '>' },
+  '@': { full: '＠', half: '@' },
+  '`': { full: '`', half: '`' },
+  '[': { full: '「', half: '[' },
+  ']': { full: '」', half: ']' },
+  '{': { full: '『', half: '{' },
+  '}': { full: '』', half: '}' },
+  '\\': { full: '￥', half: '\\' },
+  '|': { full: '｜', half: '|' },
+  '^': { full: '＾', half: '^' },
+  '_': { full: '＿', half: '_' },
+  '/': { full: '・', half: '/' },
+  ';': { full: '；', half: ';' },
+  '0': { full: '０', half: '0' },
+  '1': { full: '１', half: '1' },
+  '2': { full: '２', half: '2' },
+  '3': { full: '３', half: '3' },
+  '4': { full: '４', half: '4' },
+  '5': { full: '５', half: '5' },
+  '6': { full: '６', half: '6' },
+  '7': { full: '７', half: '7' },
+  '8': { full: '８', half: '8' },
+  '9': { full: '９', half: '9' },
+};
+
+// 2. 【ひらがな辞書】
 const jpDictionary = {
     "tyu": "ちゅ", "tya": "ちゃ", "tyo": "ちょ",
     "syu": "しゅ", "sya": "しゃ", "syo": "しょ",
@@ -56,7 +102,7 @@ const jpDictionary = {
     ,"n":"ん","nn":"ん","nn-":"んー"
     };
 
-// 2. 【英単語辞書】
+// 3. 【英単語辞書】
 const englishWords = [
     //基本ワード（動詞・前置詞・代名詞・助動詞など） ---
     "is", "am", "are", "was", "were", "be", "been", "being",
