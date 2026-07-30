@@ -83,7 +83,7 @@ document.addEventListener('keydown', function (event) {
 
 
   else if (event.key === ' ') {
-    inputSpace(
+    window.inputSpace(
       event,
       activeElement,
       debounceTimer,
