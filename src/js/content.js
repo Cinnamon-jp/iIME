@@ -13,16 +13,16 @@ const symbolPairs = {
   '-': { full: 'ー', half: '-' },
   '.': { full: '。', half: '.' },
   ',': { full: '、', half: ',' },
-  '!': { full: '！', half: '!' },  
-  '"': { full: '”', half: '"' },  
+  '!': { full: '！', half: '!' },
+  '"': { full: '”', half: '"' },
   '#': { full: '＃', half: '#' },
   '$': { full: '$', half: '$' },
   '%': { full: '％', half: '%' },
   '&': { full: '＆', half: '&' },
   '\'': { full: '’', half: '\'' },
-  '(': { full: '（', half: '(' },  
-  ')': { full: '）', half: ')' },  
-  '=': { full: '＝', half: '=' },  
+  '(': { full: '（', half: '(' },
+  ')': { full: '）', half: ')' },
+  '=': { full: '＝', half: '=' },
   '~': { full: '〜', half: '~' },
   '?': { full: '？', half: '?' },
   ':': { full: '：', half: ':' },
@@ -31,7 +31,7 @@ const symbolPairs = {
   '<': { full: '＜', half: '<' },
   '>': { full: '＞', half: '>' },
   '@': { full: '＠', half: '@' },
-  '`': { full: '`', half: '`' },  
+  '`': { full: '`', half: '`' },
   '[': { full: '「', half: '[' },
   ']': { full: '」', half: ']' },
   '{': { full: '『', half: '{' },
@@ -57,7 +57,7 @@ const symbolPairs = {
 // 全角二重入力ブロック
 document.addEventListener('input', function (event) {
   const activeElement = document.activeElement;
- if (!activeElement || (activeElement.tagName !== 'INPUT' && activeElement.tagName !== 'TEXTAREA' && !activeElement.isContentEditable)) return;
+  if (!activeElement || (activeElement.tagName !== 'INPUT' && activeElement.tagName !== 'TEXTAREA' && !activeElement.isContentEditable)) return;
   if (event.inputType === "insertCompositionText" || event.inputType === "insertText") {
     if (event.data) {
       deleteLeftText(activeElement, event.data.length);
@@ -68,7 +68,7 @@ document.addEventListener('input', function (event) {
 // キーボードイベントの監視
 document.addEventListener('keydown', function (event) {
   const activeElement = document.activeElement;
- if (!activeElement || (activeElement.tagName !== 'INPUT' && activeElement.tagName !== 'TEXTAREA' && !activeElement.isContentEditable)) return;
+  if (!activeElement || (activeElement.tagName !== 'INPUT' && activeElement.tagName !== 'TEXTAREA' && !activeElement.isContentEditable)) return;
   if (event.ctrlKey || event.metaKey) {
     return;
   }
@@ -77,10 +77,10 @@ document.addEventListener('keydown', function (event) {
   if (event.code && event.code.startsWith("Key")) {
     key = event.code.replace("Key", "").toLowerCase();//Keyを除去してアルファベットのみに
   } else {//アルファベット以外のキーはevent.keyを使う
-   key = event.key;
+    key = event.key;
   }
 
-if (event.key === 'Tab' || event.code === 'Tab') {
+  if (event.key === 'Tab' || event.code === 'Tab') {
     if (activeBuffer.length > 0) {
       event.preventDefault();
       event.stopImmediatePropagation();
@@ -115,11 +115,9 @@ if (event.key === 'Tab' || event.code === 'Tab') {
     event.preventDefault();
     event.stopImmediatePropagation();
 
-     const isEditable = activeElement.isContentEditable;
-     const text = isEditable ? activeElement.textContent : activeElement.value;
-     const selStart = isEditable ? (window.getSelection().rangeCount > 0 ? window.getSelection().getRangeAt(0).startOffset : 0) : activeElement.selectionStart;
-
-      // 現在入力中の単語の「開始位置」を探す
+    const isEditable = activeElement.isContentEditable;
+    const text = isEditable ? activeElement.textContent : activeElement.value;
+    const selStart = isEditable ? (window.getSelection().rangeCount > 0 ? window.getSelection().getRangeAt(0).startOffset : 0) : activeElement.selectionStart;
 
     // 現在入力中の単語の「開始位置」を探す
     let wordStart = selStart;
@@ -133,11 +131,11 @@ if (event.key === 'Tab' || event.code === 'Tab') {
     const isEnglishWordMode = (event.shiftKey && !symbolPairs[key]) || isEnglishModeActive;
 
     const currentSymbolSymbolKey = (event.shiftKey ? 'Shift+' : '') + key;
-   if (currentSymbolSymbolKey !== lastSymbolKey) {
-     symbolCount = 0;
-     lastSymbolStrLength = 0;
-     lastSymbolKey = currentSymbolSymbolKey;
-   }
+    if (currentSymbolSymbolKey !== lastSymbolKey) {
+      symbolCount = 0;
+      lastSymbolStrLength = 0;
+      lastSymbolKey = currentSymbolSymbolKey;
+    }
     // 英単語モードの場合の処理
     if (isEnglishWordMode) {
       // Shiftありなら大文字、なしなら小文字にする
@@ -156,18 +154,18 @@ if (event.key === 'Tab' || event.code === 'Tab') {
       isEnglishModeActive = true;
     }
     else if (symbolPairs[key] && key in symbolPairs) {
-     symbolCount++;
-     const pair = symbolPairs[key];
-      
+      symbolCount++;
+      const pair = symbolPairs[key];
+
       // 初回入力時に、連打開始地点の直前文字が全角か判定して保持
       if (symbolCount === 1) {
         let baseKana = translateToJapanese(activeBuffer);
         let lastChar = baseKana.length > 0 ? baseKana[baseKana.length - 1] : "";
         if (!lastChar) {
-         const isEditable = activeElement.activeElement?.isContentEditable || activeElement.isContentEditable;
-         const textVal = isEditable ? activeElement.textContent : activeElement.value;
-         const currentPos = isEditable ? (window.getSelection().rangeCount > 0 ? window.getSelection().getRangeAt(0).startOffset : 0) : activeElement.selectionStart;
-         const textBefore = textVal.substring(0, currentPos - lastVisualLength);
+          const isEditable = activeElement.activeElement?.isContentEditable || activeElement.isContentEditable;
+          const textVal = isEditable ? activeElement.textContent : activeElement.value;
+          const currentPos = isEditable ? (window.getSelection().rangeCount > 0 ? window.getSelection().getRangeAt(0).startOffset : 0) : activeElement.selectionStart;
+          const textBefore = textVal.substring(0, currentPos - lastVisualLength);
           lastChar = textBefore.length > 0 ? textBefore[textBefore.length - 1] : "";
         }
         isSymbolStartFullWidth = /[^\x01-\x7E\xA1-\xA5]/.test(lastChar);
@@ -182,9 +180,9 @@ if (event.key === 'Tab' || event.code === 'Tab') {
 
       const baseBuffer = activeBuffer.substring(0, activeBuffer.length - lastSymbolStrLength);
       const baseKana = translateToJapanese(baseBuffer);
-      
-     activeBuffer = baseBuffer + newSymbolStr;
-     lastSymbolStrLength = newSymbolStr.length;
+
+      activeBuffer = baseBuffer + newSymbolStr;
+      lastSymbolStrLength = newSymbolStr.length;
 
       const currentKana = baseKana + newSymbolStr;
       // 画面上の未確定描画を削除して新文字列を挿入
@@ -194,14 +192,14 @@ if (event.key === 'Tab' || event.code === 'Tab') {
       // 自動漢字変換タイマーの発動
       let requestId = ++currentRequestId;
       clearTimeout(debounceTimer);
-      
+
       if (!Object.values(symbolPairs).some(p => newSymbolStr.endsWith(p.half))) {
         debounceTimer = setTimeout(async () => {
           if (typeof window.convertKanaToKanji === 'function' && baseKana.length > 0) {
             const kanjiText = await window.convertKanaToKanji(baseKana);
             if (requestId !== currentRequestId) return;
             if (kanjiText && kanjiText !== baseKana) {
-             const fullText = kanjiText + newSymbolStr;
+              const fullText = kanjiText + newSymbolStr;
               deleteLeftText(activeElement, lastVisualLength);
               insertText(activeElement, fullText);
               lastVisualLength = fullText.length;
@@ -216,7 +214,7 @@ if (event.key === 'Tab' || event.code === 'Tab') {
     }
   } // 
 
- 
+
 
   else if (event.key === ' ') {
     event.preventDefault();
@@ -224,22 +222,22 @@ if (event.key === 'Tab' || event.code === 'Tab') {
 
     clearTimeout(debounceTimer);
 
-   symbolCount = 0;
+    symbolCount = 0;
     lastSymbolKey = "";
     const currentLastSymbolLen = lastSymbolStrLength;
     lastSymbolStrLength = 0;
-    
+
     const requestId = ++currentRequestId;
 
-if (isEnglishModeActive) {
+    if (isEnglishModeActive) {
       isEnglishModeActive = false; // フラグを解除（これで通常モードに戻る）
       activeBuffer = "";
       lastVisualLength = 0;
       if (typeof window.triggerGlow === 'function') window.triggerGlow(activeElement);
       return; // 1回目はスペースを入れずに終了
     }
- 
-     if (activeBuffer.length === 0) {
+
+    if (activeBuffer.length === 0) {
       insertText(activeElement, " ");
       activeBuffer = "";
       lastVisualLength = 0;
@@ -247,10 +245,10 @@ if (isEnglishModeActive) {
     }
 
     // 1. 直前の文字状態を取得（入力中単語の直前がスペースか文頭か）
-     const isEditable = activeElement.isContentEditable;
-     const currentText = isEditable ? activeElement.textContent : activeElement.value;
-     const currentPos = isEditable ? (window.getSelection().rangeCount > 0 ? window.getSelection().getRangeAt(0).startOffset : 0) : activeElement.selectionStart;
-     const textBeforeWord = currentText.substring(0, currentPos - lastVisualLength);
+    const isEditable = activeElement.isContentEditable;
+    const currentText = isEditable ? activeElement.textContent : activeElement.value;
+    const currentPos = isEditable ? (window.getSelection().rangeCount > 0 ? window.getSelection().getRangeAt(0).startOffset : 0) : activeElement.selectionStart;
+    const textBeforeWord = currentText.substring(0, currentPos - lastVisualLength);
     const isPrevSpace = textBeforeWord.length === 0 || textBeforeWord.endsWith(" ") || textBeforeWord.endsWith("\n");
     let foundEngWord = "";
     let jpPartBuffer = "";
@@ -284,7 +282,7 @@ if (isEnglishModeActive) {
 
       // 前半の日本語部分があれば変換（無ければ空文字）
       const jpConverted = jpPartBuffer ? translateToJapanese(jpPartBuffer) : "";
-      
+
       // 日本語部分 + 検出された英単語 を結合して挿入
       const resultText = jpConverted + foundEngWord;
       insertText(activeElement, resultText + (isFirstSpace ? "" : " "));
@@ -294,11 +292,11 @@ if (isEnglishModeActive) {
       if (typeof window.triggerGlow === 'function') window.triggerGlow(activeElement);
     }
 
-   else if ((isStartWithUpper || (isPrevSpace && isEnglishDict) || isNotJapanese) && activeBuffer.length > 0) {
+    else if ((isStartWithUpper || (isPrevSpace && isEnglishDict) || isNotJapanese) && activeBuffer.length > 0) {
 
       deleteLeftText(activeElement, lastVisualLength);
 
-            // 1回目(確定のみ)ならスペースを追加せず、2回目以降ならスペースを追加
+      // 1回目(確定のみ)ならスペースを追加せず、2回目以降ならスペースを追加
       insertText(activeElement, activeBuffer + (isFirstSpace ? "" : " "));
 
       activeBuffer = "";
@@ -311,18 +309,18 @@ if (isEnglishModeActive) {
 
       // 1回目(確定のみ)ならスペースを追加せず、2回目以降ならスペースを追加
       const appendSpace = isFirstSpace ? "" : " ";
-      
+
 
       if (isFirstSpace) {
         // 未確定文字がある場合（1回目：確定処理）
         if (lastVisualLength > 0 && typeof window.triggerGlow === 'function') window.triggerGlow(targetElement);
-        
-        activeBuffer = "";
-        lastVisualLength=0;
 
-       if (appendSpace) {
-         insertText(targetElement, appendSpace);
-       }
+        activeBuffer = "";
+        lastVisualLength = 0;
+
+        if (appendSpace) {
+          insertText(targetElement, appendSpace);
+        }
       } else {
         // すでに確定済みの場合（2回目以降：スペース入力）
         insertText(targetElement, " ");
@@ -331,7 +329,7 @@ if (isEnglishModeActive) {
       }
     }
 
-   
+
   }
 
   //Enterキーで全ての記憶を消去してリセットする
@@ -369,7 +367,7 @@ function handleCustomIME(activeElement, key) {
   let currentKana = translateToJapanese(activeBuffer);
   insertText(activeElement, currentKana);
   lastVisualLength = currentKana.length;
-  
+
   let requestId = ++currentRequestId;
 
   // 2. 入力が一瞬止まったら（80ms後）、最高確率の漢字に置き換える
@@ -414,20 +412,20 @@ function translateToJapanese(bufferText) {
 // テキスト挿入・削除補助関数
 function insertText(inputElement, text) {
   if (inputElement.isContentEditable) {
-     const sel = window.getSelection();
-     if (sel.rangeCount) {
-       const range = sel.getRangeAt(0);
-       range.deleteContents();
-       const textNode = document.createTextNode(text);
-       range.insertNode(textNode);
-       range.setStartAfter(textNode);
-       range.setEndAfter(textNode);
-       sel.removeAllRanges();
-       sel.addRange(range);
-     }
-     inputElement.dispatchEvent(new Event('input', { bubbles: true }));
-     return;
-   }
+    const sel = window.getSelection();
+    if (sel.rangeCount) {
+      const range = sel.getRangeAt(0);
+      range.deleteContents();
+      const textNode = document.createTextNode(text);
+      range.insertNode(textNode);
+      range.setStartAfter(textNode);
+      range.setEndAfter(textNode);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+    inputElement.dispatchEvent(new Event('input', { bubbles: true }));
+    return;
+  }
 
   const start = inputElement.selectionStart;
   const end = inputElement.selectionEnd;
@@ -440,18 +438,18 @@ function insertText(inputElement, text) {
 function deleteLeftText(inputElement, count) {
   if (count <= 0) return;
   if (inputElement.isContentEditable) {
-     const sel = window.getSelection();
-     if (sel.rangeCount) {
-       const range = sel.getRangeAt(0);
-       const endOffset = range.startOffset;
-       const startOffset = Math.max(0, endOffset - count);
-       range.setStart(range.startContainer, startOffset);
-       range.setEnd(range.startContainer, endOffset);
-       range.deleteContents();
-     }
-     inputElement.dispatchEvent(new Event('input', { bubbles: true }));
-     return;
-   }
+    const sel = window.getSelection();
+    if (sel.rangeCount) {
+      const range = sel.getRangeAt(0);
+      const endOffset = range.startOffset;
+      const startOffset = Math.max(0, endOffset - count);
+      range.setStart(range.startContainer, startOffset);
+      range.setEnd(range.startContainer, endOffset);
+      range.deleteContents();
+    }
+    inputElement.dispatchEvent(new Event('input', { bubbles: true }));
+    return;
+  }
   const start = inputElement.selectionStart;
   const value = inputElement.value;
   inputElement.value = value.substring(0, start - count) + value.substring(start);
@@ -459,20 +457,20 @@ function deleteLeftText(inputElement, count) {
   inputElement.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
-window.getKanjiCandidates = async function(kana) {
-   if (!kana) return [];
-   try {
-     const response = await fetch(`https://www.google.com/transliterate?langpair=ja-Hira|ja&text=${encodeURIComponent(kana)}`);
-     const data = await response.json();
-     // Google APIのレスポンス形式: [ [ "入力よみ", [ "候補1", "候補2", "候補3", ... ] ] ]
-     if (data && data[0] && data[0][1]) {
-       return data[0][1]; // 変換候補の配列（例: ["感じ", "漢字", "幹事", "かんじ"]）
-     }
-   } catch (error) {
-     console.error("Google IME API Error:", error);
-   }
-   return [kana]; // エラー時はひらがなを返す
- };
+window.getKanjiCandidates = async function (kana) {
+  if (!kana) return [];
+  try {
+    const response = await fetch(`https://www.google.com/transliterate?langpair=ja-Hira|ja&text=${encodeURIComponent(kana)}`);
+    const data = await response.json();
+    // Google APIのレスポンス形式: [ [ "入力よみ", [ "候補1", "候補2", "候補3", ... ] ] ]
+    if (data && data[0] && data[0][1]) {
+      return data[0][1]; // 変換候補の配列（例: ["感じ", "漢字", "幹事", "かんじ"]）
+    }
+  } catch (error) {
+    console.error("Google IME API Error:", error);
+  }
+  return [kana]; // エラー時はひらがなを返す
+};
 
 // すべての記憶をノートから消去してリセットする命令
 function clearAllBuffers() {
