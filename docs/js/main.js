@@ -91,9 +91,20 @@ document.addEventListener('keydown', function (event) {
     );
   }
 
-  //Enterキーで全ての記憶を消去してリセットする
+  //Enterキーで入力欄をクリアし、ページ上部に確定文字列を表示してリセットする
   else if (event.key === 'Enter') {
-    if (systemState.activeBuffer.length > 0 && typeof window.triggerGlow === 'function') window.triggerGlow(activeElement);
+    const textToCommit = activeElement.isContentEditable ? activeElement.innerText : (activeElement.value || "");
+    if (textToCommit.length > 0) {
+      if (typeof window.triggerGlow === 'function') window.triggerGlow(activeElement);
+      if (typeof window.showCommittedMessage === 'function') {
+        window.showCommittedMessage(textToCommit);
+      }
+      if (activeElement.isContentEditable) {
+        activeElement.innerText = '';
+      } else {
+        activeElement.value = '';
+      }
+    }
     clearAllBuffers();
   }
 

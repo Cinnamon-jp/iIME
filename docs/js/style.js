@@ -22,3 +22,29 @@ window.triggerGlow = function(element) {
   void element.offsetWidth;
   element.classList.add('glow-flash');
 };
+
+let toastTimer = null;
+window.showCommittedMessage = function(text) {
+  const toast = document.getElementById('committed-toast');
+  if (!toast) return;
+
+  toast.innerHTML = `<span class="toast-label">確定</span><span class="toast-text">「${escapeHtml(text)}」</span>`;
+  toast.classList.add('visible');
+
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toast.classList.remove('visible');
+  }, 4500);
+};
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, function(m) {
+    return {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    }[m];
+  });
+}
