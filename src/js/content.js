@@ -134,11 +134,11 @@ if (event.key === 'Tab' || event.code === 'Tab') {
     const isEnglishWordMode = (event.shiftKey && !symbolPairs[key]) || isEnglishModeActive;
 
     const currentSymbolSymbolKey = (event.shiftKey ? 'Shift+' : '') + key;
-   if (currentSymbolSymbolKey !== lastSymbolKey) {
-     symbolCount = 0;
-     lastSymbolStrLength = 0;
-     lastSymbolKey = currentSymbolSymbolKey;
-   }
+    if (currentSymbolSymbolKey !== lastSymbolKey) {
+      symbolCount = 0;
+      lastSymbolStrLength = 0;
+      lastSymbolKey = currentSymbolSymbolKey;
+    }
     // 英単語モードの場合の処理
     if (isEnglishWordMode) {
       // Shiftありなら大文字、なしなら小文字にする
@@ -156,6 +156,7 @@ if (event.key === 'Tab' || event.code === 'Tab') {
       activeBuffer = "";
       isEnglishModeActive = true;
     }
+    //記号の入力に必要な部分
     else if (symbolPairs[key] && key in symbolPairs) {
      symbolCount++;
      const pair = symbolPairs[key];
@@ -175,7 +176,7 @@ if (event.key === 'Tab' || event.code === 'Tab') {
       }
 
       // 回数と直前タイプに応じた記号と文字数を決定
-      const isOdd = symbolCount % 2 !== 0;
+      const isOdd = symbolCount % 2 !== 0;// 奇数回目かどうか
       const currentType = isSymbolStartFullWidth ? (isOdd ? 'full' : 'half') : (isOdd ? 'half' : 'full');
       const unitChar = pair[currentType];
       const charAmount = Math.ceil(symbolCount / 2);
