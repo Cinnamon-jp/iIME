@@ -23,7 +23,7 @@
       ],
       "js": [
         "js/inputBasicKeys.js",
-        "js/inputBackspace.js",
+        "js/inputSpace.js",
         "js/encodeText.js",
         "js/dictionary.js",
         "js/style.js",

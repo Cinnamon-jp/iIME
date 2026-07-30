@@ -1,4 +1,4 @@
-window.inputBackspace = function inputBackspace(
+window.inputSpace = function inputSpace(
   event, 
   activeElement, 
   debounceTimer,
