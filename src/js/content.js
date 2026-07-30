@@ -69,10 +69,11 @@ document.addEventListener('input', function (event) {
 document.addEventListener('keydown', function (event) {
   const activeElement = document.activeElement;
  if (!activeElement || (activeElement.tagName !== 'INPUT' && activeElement.tagName !== 'TEXTAREA' && !activeElement.isContentEditable)) return;
+  // CtrlキーやCommandキーが押されている場合はIME処理をスキップ
   if (event.ctrlKey || event.metaKey) {
     return;
   }
-  //event.codeはKeyAのような形式、event.keyはaのような形式
+  //event.codeはKeyAのような形式、event.keyはaやA、あのような形式
   let key = "";
   if (event.code && event.code.startsWith("Key")) {
     key = event.code.replace("Key", "").toLowerCase();//Keyを除去してアルファベットのみに
