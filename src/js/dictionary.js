@@ -10,13 +10,13 @@ const jpDictionary = {
     "ya": "や", "yu": "ゆ", "yo": "よ",
     "ra": "ら", "ri": "り", "ru": "る", "re": "れ", "ro": "ろ",
     "wa": "わ", "wo": "を", "nn": "ん",
-    
+
     "ga": "が", "gi": "ぎ", "gu": "ぐ", "ge": "げ", "go": "ご",
     "za": "ざ", "zi": "じ", "zu": "ず", "ze": "ぜ", "zo": "ぞ",
     "da": "だ", "di": "ぢ", "du": "づ", "de": "で", "do": "ど",
     "ba": "ば", "bi": "び", "bu": "ぶ", "be": "べ", "bo": "ぼ",
     "pa": "ぱ", "pi": "ぴ", "pu": "ぷ", "pe": "ぺ", "po": "ぽ",
-    "ja": "じゃ","ji":"じ","ju": "じゅ", "jo": "じょ","kka":"っか",
+    "ja": "じゃ", "ji": "じ", "ju": "じゅ", "jo": "じょ", "kka": "っか",
 
     "tyu": "ちゅ", "tya": "ちゃ", "tyo": "ちょ",
     "syu": "しゅ", "sya": "しゃ", "syo": "しょ",
@@ -33,18 +33,63 @@ const jpDictionary = {
 
     "tsu": "つ", "chu": "ちゅ", "cha": "ちゃ", "cho": "ちょ",
     "fa": "ふぁ", "fi": "ふぃ", "fe": "ふぇ", "fo": "ふぉ",
-    "kki":"っき","kku":"っく","kke":"っけ","kko":"っこ",
-    "ssa":"っさ","ssi":"っし","ssu":"っす","sse":"っせ","sso":"っそ","tta":"った","tti":"っち","ttu":"っつ","tte":"って","tto":"っと",
-    "ppa":"っぱ","ppi":"っぴ","ppu":"っぷ","ppe":"っぺ","ppo":"っぽ","hha":"っは","hhi":"っひ","hhu":"っふ","hhe":"っへ","hho":"っほ","mma":"っま","mmi":"っみ","mmu":"っむ","mme":"っめ","mmo":"っも",
-    "yya":"っや","yyu":"っゆ","yyo":"っよ","rra":"っら","rri":"っり","rru":"っる","rre":"っれ","rro":"っろ","wwa":"っわ","wwi":"っゐ","wwe":"っゑ","wwo":"っを","gga":"っが","ggi":"っぎ","ggu":"っぐ","gge":"っげ","ggo":"っご",
-    "zza":"っざ","zzi":"っじ","zzu":"っず","zze":"っぜ","zzo":"っぞ","dda":"っだ","ddi":"っぢ","ddu":"っづ","dde":"っで","ddo":"っど","bba":"っば","bbi":"っび","bbu":"っぶ","bbe":"っべ","bbo":"っぼ","ppa":"っぱ","ppi":"っぴ","ppu":"っぷ","ppe":"っぺ","ppo":"っぽ",
-    "la":"ぁ","li":"ぃ","lu":"ぅ","le":"ぇ","lo":"ぉ","qua":"くぁ","qui":"くぃ","quu":"くぅ","que":"くぇ","quo":"くぉ","kwa":"くゎ","kwi":"くゐ","kwu":"くゑ","kwe":"くゑ","kwo":"くを",
-    "va":"ゔぁ","vi":"ゔぃ","vu":"ゔ","ve":"ゔぇ","vo":"ゔぉ","vya":"ゔゃ","vyu":"ゔゅ","vyo":"ゔょ","vva":"ゔゎ","vvi":"ゔゐ","vvu":"ゔゑ","vve":"ゔゑ","vvo":"ゔを","vva":"ゔゎ","vvi":"ゔゐ","vvu":"ゔゑ","vve":"ゔゑ","vvo":"ゔを",
-    "kya":"きゃ","kyu":"きゅ","kyo":"きょ","sha":"しゃ","shu":"しゅ","sho":"しょ","cha":"ちゃ","chu":"ちゅ","cho":"ちょ","nya":"にゃ","nyu":"にゅ","nyo":"にょ","hya":"ひゃ","hyu":"ひゅ","hyo":"ひょ","mya":"みゃ","myu":"みゅ","myo":"みょ","rya":"りゃ","ryu":"りゅ","ryo":"りょ","lya":"ゃ","lyu":"ゅ","lyo":"ょ",
-    "shi":"し","chi":"ち","tsu":"つ","fu":"ふ","ji":"じ","ja":"じゃ","ju":"じゅ","jo":"じょ","kya":"きゃ","kyu":"きゅ","kyo":"きょ","sha":"しゃ","shu":"しゅ","sho":"しょ","cha":"ちゃ","chu":"ちゅ","cho":"ちょ"
-    ,"n":"ん","nn":"ん"
-    ,"iIME":"iIME"
-    };
+    "kki": "っき", "kku": "っく", "kke": "っけ", "kko": "っこ",
+    "ssa": "っさ", "ssi": "っし", "ssu": "っす", "sse": "っせ", "sso": "っそ", "tta": "った", "tti": "っち", "ttu": "っつ", "tte": "って", "tto": "っと",
+    "ppa": "っぱ", "ppi": "っぴ", "ppu": "っぷ", "ppe": "っぺ", "ppo": "っぽ", "hha": "っは", "hhi": "っひ", "hhu": "っふ", "hhe": "っへ", "hho": "っほ", "mma": "っま", "mmi": "っみ", "mmu": "っむ", "mme": "っめ", "mmo": "っも",
+    "yya": "っや", "yyu": "っゆ", "yyo": "っよ", "rra": "っら", "rri": "っり", "rru": "っる", "rre": "っれ", "rro": "っろ", "wwa": "っわ", "wwi": "っゐ", "wwe": "っゑ", "wwo": "っを", "gga": "っが", "ggi": "っぎ", "ggu": "っぐ", "gge": "っげ", "ggo": "っご",
+    "zza": "っざ", "zzi": "っじ", "zzu": "っず", "zze": "っぜ", "zzo": "っぞ", "dda": "っだ", "ddi": "っぢ", "ddu": "っづ", "dde": "っで", "ddo": "っど", "bba": "っば", "bbi": "っび", "bbu": "っぶ", "bbe": "っべ", "bbo": "っぼ", "ppa": "っぱ", "ppi": "っぴ", "ppu": "っぷ", "ppe": "っぺ", "ppo": "っぽ",
+    "la": "ぁ", "li": "ぃ", "lu": "ぅ", "le": "ぇ", "lo": "ぉ", "qua": "くぁ", "qui": "くぃ", "quu": "くぅ", "que": "くぇ", "quo": "くぉ", "kwa": "くゎ", "kwi": "くゐ", "kwu": "くゑ", "kwe": "くゑ", "kwo": "くを",
+    "va": "ゔぁ", "vi": "ゔぃ", "vu": "ゔ", "ve": "ゔぇ", "vo": "ゔぉ", "vya": "ゔゃ", "vyu": "ゔゅ", "vyo": "ゔょ", "vva": "ゔゎ", "vvi": "ゔゐ", "vvu": "ゔゑ", "vve": "ゔゑ", "vvo": "ゔを", "vva": "ゔゎ", "vvi": "ゔゐ", "vvu": "ゔゑ", "vve": "ゔゑ", "vvo": "ゔを",
+    "kya": "きゃ", "kyu": "きゅ", "kyo": "きょ", "sha": "しゃ", "shu": "しゅ", "sho": "しょ", "cha": "ちゃ", "chu": "ちゅ", "cho": "ちょ", "nya": "にゃ", "nyu": "にゅ", "nyo": "にょ", "hya": "ひゃ", "hyu": "ひゅ", "hyo": "ひょ", "mya": "みゃ", "myu": "みゅ", "myo": "みょ", "rya": "りゃ", "ryu": "りゅ", "ryo": "りょ", "lya": "ゃ", "lyu": "ゅ", "lyo": "ょ",
+    "shi": "し", "chi": "ち", "tsu": "つ", "fu": "ふ", "ji": "じ", "ja": "じゃ", "ju": "じゅ", "jo": "じょ", "kya": "きゃ", "kyu": "きゅ", "kyo": "きょ", "sha": "しゃ", "shu": "しゅ", "sho": "しょ", "cha": "ちゃ", "chu": "ちゅ", "cho": "ちょ"
+    , "n": "ん", "nn": "ん"
+    , "iIME": "iIME",
+
+    //記号類
+    "-": "ー",
+    ".": "。",
+    ",": "、",
+    "!": "！",
+    '"': "”",
+    "#": "＃",
+    "$": "＄",
+    "%": "％",
+    "&": "＆",
+    "\'": "’",
+    "(": "（",
+    ")": "）",
+    "=": "＝",
+    "~": "〜",
+    "?": "？",
+    ":": "：",
+    "*": "＊",
+    "+": "＋",
+    "<": "＜",
+    ">": "＞",
+    "@": "＠",
+    "`": "`",
+    "[": "「",
+    "]": "」",
+    "{": "『",
+    "}": "』",
+    "\\": "￥",
+    "|": "｜",
+    "^": "＾",
+    "_": "＿",
+    "/": "・",
+    ";": "；",
+    "0": "０",
+    "1": "１",
+    "2": "２",
+    "3": "３",
+    "4": "４",
+    "5": "５",
+    "6": "６",
+    "7": "７",
+    "8": "８",
+    "9": "９",
+
+};
 
 // 2. 【英単語辞書】
 const englishWords = [
@@ -669,6 +714,6 @@ const englishWords = [
     "ground", "group", "grouse", "grout", "grove", "grovel", "grow", "growl", "grown", "growth", "grub", "grudge",
     "gruel", "gruesome", "gruff", "grumble", "grumpy", "grunt", "guano", "guard", "guardian", "guess", "guest",
     "guffaw", "guide", "guild", "guile", "guilt", "guilty", "guise", "guitar", "gulf", "gull", "gully", "gulp",
-    "gum", "gun", "gurgle", "gush", "gust", "gusto", "gut", "gutter", "guy", "guzzle", "gym","iime","nothing","anyone","anything","anywhere","everybody","everyone","everything","everywhere","somebody","someone",
-    "something","somewhere"
+    "gum", "gun", "gurgle", "gush", "gust", "gusto", "gut", "gutter", "guy", "guzzle", "gym", "iime", "nothing", "anyone", "anything", "anywhere", "everybody", "everyone", "everything", "everywhere", "somebody", "someone",
+    "something", "somewhere"
 ];
