@@ -74,8 +74,6 @@ document.addEventListener('keydown', function (event) {
     const selStart = isEditable ? (window.getSelection().rangeCount > 0 ? window.getSelection().getRangeAt(0).startOffset : 0) : activeElement.selectionStart;
 
     // 現在入力中の単語の「開始位置」を探す
-
-    // 現在入力中の単語の「開始位置」を探す
     let wordStart = selStart;
     while (wordStart > 0 && text[wordStart - 1] !== ' ' && text[wordStart - 1] !== '\n') {
       wordStart--;
@@ -84,14 +82,8 @@ document.addEventListener('keydown', function (event) {
     // 現在入力中の単語を切り出す
     const currentWord = text.substring(wordStart, selStart);
 
-    const isEnglishWordMode = (event.shiftKey && !symbolPairs[key]) || isEnglishModeActive;
+    const isEnglishWordMode = (event.shiftKey) || isEnglishModeActive;
 
-    const currentSymbolSymbolKey = (event.shiftKey ? 'Shift+' : '') + key;
-    if (currentSymbolSymbolKey !== lastSymbolKey) {
-      symbolCount = 0;
-      lastSymbolStrLength = 0;
-      lastSymbolKey = currentSymbolSymbolKey;
-    }
     // 英単語モードの場合の処理
     if (isEnglishWordMode) {
       // Shiftありなら大文字、なしなら小文字にする
@@ -109,80 +101,18 @@ document.addEventListener('keydown', function (event) {
       activeBuffer = "";
       isEnglishModeActive = true;
     }
-    //記号の入力に必要な部分
-    // else if (symbolPairs[key] && key in symbolPairs) {
-    //  symbolCount++;
-    //  const pair = symbolPairs[key];
 
-    //   // 初回入力時に、連打開始地点の直前文字が全角か判定して保持
-    //   if (symbolCount === 1) {
-    //     let baseKana = translateToJapanese(activeBuffer);
-    //     let lastChar = baseKana.length > 0 ? baseKana[baseKana.length - 1] : "";
-    //     if (!lastChar) {
-    //      const isEditable = activeElement.activeElement?.isContentEditable || activeElement.isContentEditable;
-    //      const textVal = isEditable ? activeElement.textContent : activeElement.value;
-    //      const currentPos = isEditable ? (window.getSelection().rangeCount > 0 ? window.getSelection().getRangeAt(0).startOffset : 0) : activeElement.selectionStart;
-    //      const textBefore = textVal.substring(0, currentPos - lastVisualLength);
-    //       lastChar = textBefore.length > 0 ? textBefore[textBefore.length - 1] : "";
-    //     }
-    //     isSymbolStartFullWidth = /[^\x01-\x7E\xA1-\xA5]/.test(lastChar);
-    //   }
-
-    //   // 回数と直前タイプに応じた記号と文字数を決定
-    //   const isOdd = symbolCount % 2 !== 0;// 奇数回目かどうか
-    //   const currentType = isSymbolStartFullWidth ? (isOdd ? 'full' : 'half') : (isOdd ? 'half' : 'full');
-    //   const unitChar = pair[currentType];
-    //   const charAmount = Math.ceil(symbolCount / 2);
-    //   const newSymbolStr = unitChar.repeat(charAmount);
-
-    //   const baseBuffer = activeBuffer.substring(0, activeBuffer.length - lastSymbolStrLength);
-    //   const baseKana = translateToJapanese(baseBuffer);
-
-    //  activeBuffer = baseBuffer + newSymbolStr;
-    //  lastSymbolStrLength = newSymbolStr.length;
-
-    //   const currentKana = baseKana + newSymbolStr;
-    //   // 画面上の未確定描画を削除して新文字列を挿入
-    //   deleteLeftText(activeElement, lastVisualLength);
-    //   insertText(activeElement, currentKana);
-    //   lastVisualLength = currentKana.length;
-    //   // 自動漢字変換タイマーの発動
-    //   let requestId = ++currentRequestId;
-    //   clearTimeout(debounceTimer);
-
-    //   if (!Object.values(symbolPairs).some(p => newSymbolStr.endsWith(p.half))) {
-    //     debounceTimer = setTimeout(async () => {
-    //       if (typeof window.convertKanaToKanji === 'function' && baseKana.length > 0) {
-    //         const kanjiText = await window.convertKanaToKanji(baseKana);
-    //         if (requestId !== currentRequestId) return;
-    //         if (kanjiText && kanjiText !== baseKana) {
-    //          const fullText = kanjiText + newSymbolStr;
-    //           deleteLeftText(activeElement, lastVisualLength);
-    //           insertText(activeElement, fullText);
-    //           lastVisualLength = fullText.length;
-    //         }
-    //       }
-    //     }, 80);
-    //   }
-    // }
-    // 通常の英字入力
     else {
       handleCustomIME(activeElement, key);
     }
-  } // 
-
+  }
 
 
   else if (event.key === ' ') {
-    event.preventDefault();
-    event.stopImmediatePropagation();
+    event.preventDefault(); //ブラウザのスペースキー入力を止める
+    event.stopImmediatePropagation(); //イベントの伝播を止める
 
     clearTimeout(debounceTimer);
-
-    symbolCount = 0;
-    lastSymbolKey = "";
-    const currentLastSymbolLen = lastSymbolStrLength;
-    lastSymbolStrLength = 0;
 
     const requestId = ++currentRequestId;
 
@@ -193,7 +123,7 @@ document.addEventListener('keydown', function (event) {
       if (typeof window.triggerGlow === 'function') window.triggerGlow(activeElement);
       return; // 1回目はスペースを入れずに終了
     }
-
+    //バッファが空の場合、スペースを挿入(2回連続でスペースを打つことでスペースが打てる)
     if (activeBuffer.length === 0) {
       insertText(activeElement, " ");
       activeBuffer = "";
@@ -210,9 +140,6 @@ document.addEventListener('keydown', function (event) {
     let foundEngWord = "";
     let jpPartBuffer = "";
 
-    const baseBuffer = activeBuffer.substring(0, activeBuffer.length - currentLastSymbolLen);
-    const symbolSuffix = activeBuffer.substring(activeBuffer.length - currentLastSymbolLen);
-
     if (typeof englishWords !== 'undefined') {
       // 後ろから長い順に辞書とマッチするか検索
       for (let i = 0; i < activeBuffer.length; i++) {
@@ -227,9 +154,8 @@ document.addEventListener('keydown', function (event) {
     }
     // 2. 「最初が大文字」または「前がスペース ＆ 辞書にある英単語」か判定
     const isStartWithUpper = /^[A-Z]/.test(activeBuffer);
-    const isNotJapanese = baseBuffer.length > 0 && translateToJapanese(baseBuffer) === baseBuffer;
+    const isNotJapanese = activeBuffer.length > 0 && translateToJapanese(activeBuffer) === activeBuffer;
     const isEnglishDict = typeof englishWords !== 'undefined' && englishWords.includes(activeBuffer.toLowerCase());
-    const currentVisualLen = lastVisualLength
     const isFirstSpace = activeBuffer.length > 0;
 
     // バッファ内に英単語が見つかった場合（直前スペースがなくても判定） ---
@@ -261,7 +187,6 @@ document.addEventListener('keydown', function (event) {
       if (typeof window.triggerGlow === 'function') window.triggerGlow(activeElement);
 
     } else {
-      const rawHiragana = translateToJapanese(baseBuffer) + symbolSuffix;
       const targetElement = activeElement;
 
       // 1回目(確定のみ)ならスペースを追加せず、2回目以降ならスペースを追加
@@ -301,9 +226,6 @@ document.addEventListener('keydown', function (event) {
     activeBuffer = "";
     lastVisualLength = 0;
     isEnglishModeActive = false;
-    symbolCount = 0;
-    lastSymbolKey = "";
-    lastSymbolStrLength = 0;
   }
 }, true);
 
@@ -435,7 +357,5 @@ function clearAllBuffers() {
   activeBuffer = "";           // ノートを空にする
   lastVisualLength = 0;        // 画面の文字数の記憶も0に
   isEnglishModeActive = false;
-  hyphenCount = 0;
-  lastHyphenStrLength = 0;
   currentRequestId++;          // 変換IDを進めて、遅れてやってくる漢字変換を無視する
 }
