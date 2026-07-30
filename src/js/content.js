@@ -114,8 +114,6 @@ document.addEventListener('keydown', function (event) {
 
     clearTimeout(debounceTimer);
 
-    const requestId = ++currentRequestId;
-
     if (isEnglishModeActive) {
       isEnglishModeActive = false; // フラグを解除（これで通常モードに戻る）
       activeBuffer = "";
@@ -123,6 +121,7 @@ document.addEventListener('keydown', function (event) {
       if (typeof window.triggerGlow === 'function') window.triggerGlow(activeElement);
       return; // 1回目はスペースを入れずに終了
     }
+
     //バッファが空の場合、スペースを挿入(2回連続でスペースを打つことでスペースが打てる)
     if (activeBuffer.length === 0) {
       insertText(activeElement, " ");
@@ -131,87 +130,13 @@ document.addEventListener('keydown', function (event) {
       return;
     }
 
-    // 1. 直前の文字状態を取得（入力中単語の直前がスペースか文頭か）
-    const isEditable = activeElement.isContentEditable;
-    const currentText = isEditable ? activeElement.textContent : activeElement.value;
-    const currentPos = isEditable ? (window.getSelection().rangeCount > 0 ? window.getSelection().getRangeAt(0).startOffset : 0) : activeElement.selectionStart;
-    const textBeforeWord = currentText.substring(0, currentPos - lastVisualLength);
-    const isPrevSpace = textBeforeWord.length === 0 || textBeforeWord.endsWith(" ") || textBeforeWord.endsWith("\n");
-    let foundEngWord = "";
-    let jpPartBuffer = "";
-
-    if (typeof englishWords !== 'undefined') {
-      // 後ろから長い順に辞書とマッチするか検索
-      for (let i = 0; i < activeBuffer.length; i++) {
-        const sub = activeBuffer.substring(i).toLowerCase();
-        const minLength = (i === 0) ? 1 : 3;
-        if (sub.length >= minLength && englishWords.includes(sub)) {
-          foundEngWord = sub;
-          jpPartBuffer = activeBuffer.substring(0, i); // 英単語より前の部分
-          break;
-        }
-      }
-    }
-    // 2. 「最初が大文字」または「前がスペース ＆ 辞書にある英単語」か判定
-    const isStartWithUpper = /^[A-Z]/.test(activeBuffer);
-    const isNotJapanese = activeBuffer.length > 0 && translateToJapanese(activeBuffer) === activeBuffer;
-    const isEnglishDict = typeof englishWords !== 'undefined' && englishWords.includes(activeBuffer.toLowerCase());
-    const isFirstSpace = activeBuffer.length > 0;
-
-    // バッファ内に英単語が見つかった場合（直前スペースがなくても判定） ---
-    if (foundEngWord.length > 0) {
-      // 画面上の未確定テキストを削除
-      deleteLeftText(activeElement, lastVisualLength);
-
-      // 前半の日本語部分があれば変換（無ければ空文字）
-      const jpConverted = jpPartBuffer ? translateToJapanese(jpPartBuffer) : "";
-
-      // 日本語部分 + 検出された英単語 を結合して挿入
-      const resultText = jpConverted + foundEngWord;
-      insertText(activeElement, resultText + (isFirstSpace ? "" : " "));
-
-      activeBuffer = "";
-      lastVisualLength = 0;
-      if (typeof window.triggerGlow === 'function') window.triggerGlow(activeElement);
+    // 未確定文字がある場合：確定処理してグロー表示
+    if (typeof window.triggerGlow === 'function' && lastVisualLength > 0) {
+      window.triggerGlow(activeElement);
     }
 
-    else if ((isStartWithUpper || (isPrevSpace && isEnglishDict) || isNotJapanese) && activeBuffer.length > 0) {
-
-      deleteLeftText(activeElement, lastVisualLength);
-
-      // 1回目(確定のみ)ならスペースを追加せず、2回目以降ならスペースを追加
-      insertText(activeElement, activeBuffer + (isFirstSpace ? "" : " "));
-
-      activeBuffer = "";
-      lastVisualLength = 0;
-      if (typeof window.triggerGlow === 'function') window.triggerGlow(activeElement);
-
-    } else {
-      const targetElement = activeElement;
-
-      // 1回目(確定のみ)ならスペースを追加せず、2回目以降ならスペースを追加
-      const appendSpace = isFirstSpace ? "" : " ";
-
-
-      if (isFirstSpace) {
-        // 未確定文字がある場合（1回目：確定処理）
-        if (lastVisualLength > 0 && typeof window.triggerGlow === 'function') window.triggerGlow(targetElement);
-
-        activeBuffer = "";
-        lastVisualLength = 0;
-
-        if (appendSpace) {
-          insertText(targetElement, appendSpace);
-        }
-      } else {
-        // すでに確定済みの場合（2回目以降：スペース入力）
-        insertText(targetElement, " ");
-        activeBuffer = "";
-        lastVisualLength = 0;
-      }
-    }
-
-
+    activeBuffer = "";
+    lastVisualLength = 0;
   }
 
   //Enterキーで全ての記憶を消去してリセットする
@@ -242,26 +167,111 @@ function handleCustomIME(activeElement, key) {
 
   activeBuffer += key;
 
-  // 1. レスポンス維持のため、まずひらがなを表示
-  let currentKana = translateToJapanese(activeBuffer);
-  insertText(activeElement, currentKana);
-  lastVisualLength = currentKana.length;
+  // 1. レスポンス維持のため、英単語は英語、ローマ字はひらがなに変換して表示
+  let currentDisplay = translateSmart(activeBuffer);
+  insertText(activeElement, currentDisplay);
+  lastVisualLength = currentDisplay.length;
 
   let requestId = ++currentRequestId;
 
-  // 2. 入力が一瞬止まったら（80ms後）、最高確率の漢字に置き換える
+  // 2. 入力が一瞬止まったら（80ms後）、日本語部分を最高確率の漢字に置き換える
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(async () => {
-    if (typeof window.convertKanaToKanji === 'function' && currentKana.length > 0) {
-      const kanjiText = await window.convertKanaToKanji(currentKana);
+    if (currentDisplay.length > 0) {
+      const kanjiText = await convertSmartKanaKanji(activeBuffer);
       if (requestId !== currentRequestId) return;
-      if (kanjiText && kanjiText !== currentKana) {
+      if (kanjiText && kanjiText !== currentDisplay) {
         deleteLeftText(activeElement, lastVisualLength);
         insertText(activeElement, kanjiText);
         lastVisualLength = kanjiText.length;
       }
     }
   }, 80);
+}
+
+// バッファを英単語トークンと日本語(ローマ字)トークンに分割する
+function tokenizeBuffer(bufferText) {
+  if (!bufferText) return [];
+
+  const tokens = [];
+  let remaining = bufferText;
+
+  while (remaining.length > 0) {
+    let bestMatch = null;
+    let bestIndex = -1;
+
+    if (typeof englishWords !== 'undefined') {
+      for (let i = 0; i < remaining.length; i++) {
+        // 先頭が大文字の場合（例: Apple, Google, VSCode）は英単語と判別
+        if (/^[A-Z][a-zA-Z]*$/.test(remaining.substring(i))) {
+          bestMatch = remaining.substring(i);
+          bestIndex = i;
+          break;
+        }
+
+        for (let len = remaining.length - i; len >= 2; len--) {
+          const candidate = remaining.substring(i, i + len);
+          const lower = candidate.toLowerCase();
+
+          if (englishWords.includes(lower)) {
+            // 短い2文字の英単語は前後がアルファベットかつスペースなしの場合にローマ字途中と判断してスキップ
+            if (candidate.length <= 2) {
+              if (i > 0 && /[a-z]/i.test(remaining[i - 1]) && !/[ \n]/.test(remaining[i - 1])) {
+                continue;
+              }
+            }
+            bestMatch = candidate;
+            bestIndex = i;
+            break;
+          }
+        }
+        if (bestMatch) break;
+      }
+    }
+
+    if (bestMatch && bestIndex >= 0) {
+      if (bestIndex > 0) {
+        tokens.push({ type: 'jp', text: remaining.substring(0, bestIndex) });
+      }
+      tokens.push({ type: 'en', text: bestMatch });
+      remaining = remaining.substring(bestIndex + bestMatch.length);
+    } else {
+      tokens.push({ type: 'jp', text: remaining });
+      remaining = "";
+    }
+  }
+
+  return tokens;
+}
+
+// 日本語/英語を考慮したリアルタイム表示用変換関数
+function translateSmart(bufferText) {
+  const tokens = tokenizeBuffer(bufferText);
+  return tokens.map(t => {
+    if (t.type === 'en') {
+      return t.text;
+    } else {
+      return translateToJapanese(t.text);
+    }
+  }).join('');
+}
+
+// 漢字変換API（日本語部分のみ変換し、英語部分はそのまま結合）
+async function convertSmartKanaKanji(bufferText) {
+  const tokens = tokenizeBuffer(bufferText);
+  const convertedParts = await Promise.all(tokens.map(async (t) => {
+    if (t.type === 'en') {
+      return t.text;
+    } else {
+      const kana = translateToJapanese(t.text);
+      if (!kana) return "";
+      if (typeof window.convertKanaToKanji === 'function') {
+        return await window.convertKanaToKanji(kana);
+      }
+      return kana;
+    }
+  }));
+  return convertedParts.join('');
 }
 
 // アルファベットをひらがなに変換する関数
