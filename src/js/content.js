@@ -57,8 +57,7 @@ const symbolPairs = {
 // 全角二重入力ブロック
 document.addEventListener('input', function (event) {
   const activeElement = document.activeElement;
-  if (!activeElement || (activeElement.tagName !== 'INPUT' && activeElement.tagName !== 'TEXTAREA')) return;
-
+ if (!activeElement || (activeElement.tagName !== 'INPUT' && activeElement.tagName !== 'TEXTAREA' && !activeElement.isContentEditable)) return;
   if (event.inputType === "insertCompositionText" || event.inputType === "insertText") {
     if (event.data) {
       deleteLeftText(activeElement, event.data.length);
@@ -69,8 +68,7 @@ document.addEventListener('input', function (event) {
 // キーボードイベントの監視
 document.addEventListener('keydown', function (event) {
   const activeElement = document.activeElement;
-  if (!activeElement || (activeElement.tagName !== 'INPUT' && activeElement.tagName !== 'TEXTAREA')) return;
-
+ if (!activeElement || (activeElement.tagName !== 'INPUT' && activeElement.tagName !== 'TEXTAREA' && !activeElement.isContentEditable)) return;
   if (event.ctrlKey || event.metaKey) {
     return;
   }
@@ -117,8 +115,11 @@ if (event.key === 'Tab' || event.code === 'Tab') {
     event.preventDefault();
     event.stopImmediatePropagation();
 
-    const text = activeElement.value;
-    const selStart = activeElement.selectionStart;
+     const isEditable = activeElement.isContentEditable;
+     const text = isEditable ? activeElement.textContent : activeElement.value;
+     const selStart = isEditable ? (window.getSelection().rangeCount > 0 ? window.getSelection().getRangeAt(0).startOffset : 0) : activeElement.selectionStart;
+
+      // 現在入力中の単語の「開始位置」を探す
 
     // 現在入力中の単語の「開始位置」を探す
     let wordStart = selStart;
@@ -163,7 +164,10 @@ if (event.key === 'Tab' || event.code === 'Tab') {
         let baseKana = translateToJapanese(activeBuffer);
         let lastChar = baseKana.length > 0 ? baseKana[baseKana.length - 1] : "";
         if (!lastChar) {
-          const textBefore = activeElement.value.substring(0, activeElement.selectionStart - lastVisualLength);
+         const isEditable = activeElement.activeElement?.isContentEditable || activeElement.isContentEditable;
+         const textVal = isEditable ? activeElement.textContent : activeElement.value;
+         const currentPos = isEditable ? (window.getSelection().rangeCount > 0 ? window.getSelection().getRangeAt(0).startOffset : 0) : activeElement.selectionStart;
+         const textBefore = textVal.substring(0, currentPos - lastVisualLength);
           lastChar = textBefore.length > 0 ? textBefore[textBefore.length - 1] : "";
         }
         isSymbolStartFullWidth = /[^\x01-\x7E\xA1-\xA5]/.test(lastChar);
@@ -243,9 +247,10 @@ if (isEnglishModeActive) {
     }
 
     // 1. 直前の文字状態を取得（入力中単語の直前がスペースか文頭か）
-    const currentText = activeElement.value;
-    // 画面に出ている文字（lastVisualLength）の直前の文字を確認する
-    const textBeforeWord = currentText.substring(0, activeElement.selectionStart - lastVisualLength);
+     const isEditable = activeElement.isContentEditable;
+     const currentText = isEditable ? activeElement.textContent : activeElement.value;
+     const currentPos = isEditable ? (window.getSelection().rangeCount > 0 ? window.getSelection().getRangeAt(0).startOffset : 0) : activeElement.selectionStart;
+     const textBeforeWord = currentText.substring(0, currentPos - lastVisualLength);
     const isPrevSpace = textBeforeWord.length === 0 || textBeforeWord.endsWith(" ") || textBeforeWord.endsWith("\n");
     let foundEngWord = "";
     let jpPartBuffer = "";
@@ -405,6 +410,22 @@ function translateToJapanese(bufferText) {
 
 // テキスト挿入・削除補助関数
 function insertText(inputElement, text) {
+  if (inputElement.isContentEditable) {
+     const sel = window.getSelection();
+     if (sel.rangeCount) {
+       const range = sel.getRangeAt(0);
+       range.deleteContents();
+       const textNode = document.createTextNode(text);
+       range.insertNode(textNode);
+       range.setStartAfter(textNode);
+       range.setEndAfter(textNode);
+       sel.removeAllRanges();
+       sel.addRange(range);
+     }
+     inputElement.dispatchEvent(new Event('input', { bubbles: true }));
+     return;
+   }
+
   const start = inputElement.selectionStart;
   const end = inputElement.selectionEnd;
   const value = inputElement.value;
@@ -415,6 +436,19 @@ function insertText(inputElement, text) {
 
 function deleteLeftText(inputElement, count) {
   if (count <= 0) return;
+  if (inputElement.isContentEditable) {
+     const sel = window.getSelection();
+     if (sel.rangeCount) {
+       const range = sel.getRangeAt(0);
+       const endOffset = range.startOffset;
+       const startOffset = Math.max(0, endOffset - count);
+       range.setStart(range.startContainer, startOffset);
+       range.setEnd(range.startContainer, endOffset);
+       range.deleteContents();
+     }
+     inputElement.dispatchEvent(new Event('input', { bubbles: true }));
+     return;
+   }
   const start = inputElement.selectionStart;
   const value = inputElement.value;
   inputElement.value = value.substring(0, start - count) + value.substring(start);
