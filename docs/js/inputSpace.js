@@ -1,4 +1,4 @@
-window.inputBackspace = function inputBackspace(
+window.inputSpace = function inputSpace(
   event, 
   activeElement, 
   debounceTimer,
@@ -48,7 +48,7 @@ window.inputBackspace = function inputBackspace(
       for (let i = 0; i < systemState.activeBuffer.length; i++) {
         const sub = systemState.activeBuffer.substring(i).toLowerCase();
         const minLength = (i === 0) ? 1 : 3;
-        if (sub.length >= minLength && englishWords.includes(sub)) {
+      if (sub.length >= minLength && sub !== 'you' && englishWords.includes(sub)) {
           foundEngWord = sub;
           jpPartBuffer = systemState.activeBuffer.substring(0, i); // 英単語より前の部分
           break;
