@@ -18,7 +18,7 @@
   "permissions": [],
   "content_scripts": [
     {
-     "matches": [
+      "matches": [
         "<all_urls>"
       ],
       "js": [
@@ -26,6 +26,9 @@
         "js/content3.js",
         "js/content.js",
         "js/style.js"
+      ],
+      "css": [
+        "css/style.css"
       ]
     }
   ],
@@ -35,8 +38,8 @@
         "words.txt"
       ],
       "matches": [
-       "<all_urls>"
-     ]
+        "<all_urls>"
+      ]
     }
   ]
 }
