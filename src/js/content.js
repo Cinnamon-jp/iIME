@@ -352,6 +352,9 @@ if (isEnglishModeActive) {
   }
 }, true);
 
+// フォーカスアウト時に全ての記憶を消去してリセットする
+document.addEventListener('focusout', clearAllBuffers);
+
 // 入力後の自動漢字変換までのウェイト用タイマー
 let debounceTimer = null;
 
