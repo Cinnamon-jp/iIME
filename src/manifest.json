@@ -22,10 +22,12 @@
         "<all_urls>"
       ],
       "js": [
+        "js/inputBasicKeys.js",
+        "js/inputBackspace.js",
+        "js/encodeText.js",
         "js/dictionary.js",
-        "js/content3.js",
-        "js/content.js",
-        "js/style.js"
+        "js/style.js",
+        "js/main.js"
       ],
       "css": [
         "css/style.css"
