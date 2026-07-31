@@ -44,7 +44,7 @@
 まずは、本リポジトリをご自身のローカル環境にダウンロードします。ターミナルを開き、任意のディレクトリで以下のコマンドを実行してください。
 
 ```bash
-git clone [https://github.com/Cinnamon-jp/iIME.git](https://github.com/Cinnamon-jp/iIME.git)
+git clone https://github.com/Cinnamon-jp/iIME.git
 ```
 
 (※ZIPファイルでダウンロードした場合は、任意の場所に解凍してください)
