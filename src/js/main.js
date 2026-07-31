@@ -83,7 +83,7 @@ document.addEventListener('keydown', function (event) {
 
 
   else if (event.key === ' ') {
-    inputSpace(
+    window.inputSpace(
       event,
       activeElement,
       debounceTimer,
@@ -122,7 +122,6 @@ function handleCustomIME(activeElement, key) {
 
   systemState.activeBuffer += key;
 
-  // 1. レスポンス維持のため、まずひらがなを表示
   let currentKana = translateToJapanese(systemState.activeBuffer);
   insertText(activeElement, currentKana);
   systemState.lastVisualLength = currentKana.length;

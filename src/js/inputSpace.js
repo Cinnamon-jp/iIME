@@ -1,4 +1,4 @@
-window.inputSpace = function inputSpace(
+window.inputSpace = async function inputSpace(
   event, 
   activeElement, 
   debounceTimer,
@@ -68,8 +68,13 @@ window.inputSpace = function inputSpace(
       deleteLeftText(activeElement, systemState.lastVisualLength);
 
       // 前半の日本語部分があれば変換（無ければ空文字）
-      const jpConverted = jpPartBuffer ? translateToJapanese(jpPartBuffer) : "";
-
+      const jpKana = jpPartBuffer ? translateToJapanese(jpPartBuffer) : "";
+     let jpConverted = jpKana;
+     if (jpKana.length > 0 && typeof window.getKanjiCandidates === 'function') {
+       const candidates = await window.getKanjiCandidates(jpKana);
+       if (candidates && candidates.length > 0) jpConverted = candidates[0];
+     }
+     if (requestId !== systemState.currentRequestId) return;
       // 日本語部分 + 検出された英単語 を結合して挿入
       const resultText = jpConverted + foundEngWord;
       insertText(activeElement, resultText + (isFirstSpace ? "" : " "));
