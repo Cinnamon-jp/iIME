@@ -25,7 +25,7 @@ window.inputBasicKeys = async function inputBasicKeys(
     const isEnglishWordMode = (event.shiftKey && !symbolPairs[key]) || systemState.isEnglishModeActive;
 
     const isNumber = key.match(/^[0-9]$/);
-    const currentSymbolSymbolKey = (event.shiftKey ? 'Shift+' : '') + key;
+    const currentSymbolSymbolKey = key === '-' ? '-' : ((event.shiftKey ? 'Shift+' : '') + key);
 
    
 
@@ -48,21 +48,52 @@ window.inputBasicKeys = async function inputBasicKeys(
     }
  
 
+
     else if ((symbolPairs[key] && key in symbolPairs) || isNumber) {
 
       
-      const baseBufferPrev = systemState.activeBuffer.substring(0, systemState.activeBuffer.length - systemState.lastSymbolStrLength);
-      if (baseBufferPrev.length > 0) {
+      
+     const baseBufferPrev = systemState.activeBuffer.substring(0, systemState.activeBuffer.length - systemState.lastSymbolStrLength);
+     
+    if (baseBufferPrev.length > 0 && /^[a-zA-Z]+$/.test(baseBufferPrev) && key === '-') {
         handleCustomIME(activeElement, key);
         return;
+     }
+
+
+      if (isNumber && baseBufferPrev.length > 0) {
+        if (typeof window.triggerGlow === 'function') window.triggerGlow(activeElement);
+        systemState.activeBuffer = "";
+        systemState.lastVisualLength = 0;
       }
 
      if (currentSymbolSymbolKey !== systemState.lastSymbolKey) {
+
+      const isEditable = activeElement.isContentEditable;
+       const textVal = isEditable ? activeElement.textContent : activeElement.value;
+       const currentPos = isEditable ? (window.getSelection().rangeCount > 0 ? window.getSelection().getRangeAt(0).startOffset : 0) : activeElement.selectionStart;
+       const textBefore = textVal.substring(0, currentPos);
+       const lastChar = textBefore.length > 0 ? textBefore[textBefore.length - 1] : "";
+
+       // 直前文字が全角長音「ー」で、伸ばし棒キー（`-`）が押された場合は「連打2回目」としてトグルへ引き継ぐ
+       if (lastChar === 'ー' && key === '-') {
+         systemState.symbolCount = 0;
+         systemState.lastSymbolStrLength = 1;
+         systemState.lastVisualLength = 1;
+         systemState.symbolBaseBuffer = "";
+         systemState.lastSymbolKey = currentSymbolSymbolKey;
+         systemState.isSymbolStartFullWidth = true;
+         systemState.isHyphenContinue = true
+       } else {
         systemState.activeBuffer = "";
         systemState.lastVisualLength = 0;
         systemState.symbolCount = 0;
         systemState.lastSymbolStrLength = 0;
         systemState.lastSymbolKey = currentSymbolSymbolKey;
+        delete systemState.symbolBaseBuffer;
+        delete systemState.isSymbolStartFullWidth;
+        delete systemState.isHyphenContinue;
+       }
       }
 
 
@@ -75,6 +106,10 @@ window.inputBasicKeys = async function inputBasicKeys(
 
       // 初回入力時に、連打開始地点の直前文字が全角か判定して保持
      if (systemState.symbolCount === 1) {
+
+      if (systemState.symbolBaseBuffer === undefined) {
+         systemState.symbolBaseBuffer = systemState.activeBuffer.substring(0, systemState.activeBuffer.length - systemState.lastSymbolStrLength);
+       }
        
         const baseBuf = systemState.activeBuffer.substring(0, systemState.activeBuffer.length - systemState.lastSymbolStrLength);
         let baseKana = translateToJapanese(baseBuf);
@@ -83,24 +118,27 @@ window.inputBasicKeys = async function inputBasicKeys(
           const isEditable = activeElement.isContentEditable;
           const textVal = isEditable ? activeElement.textContent : activeElement.value;
           const currentPos = isEditable ? (window.getSelection().rangeCount > 0 ? window.getSelection().getRangeAt(0).startOffset : 0) : activeElement.selectionStart;
-          const textBefore = textVal.substring(0, currentPos - systemState.lastVisualLength);
+          const textBefore = textVal.substring(0, currentPos);
           lastChar = textBefore.length > 0 ? textBefore[textBefore.length - 1] : "";
         }
 
 
-        systemState.isSymbolStartFullWidth = /[^\x01-\x7E\xA1-\xA5]/.test(lastChar);
+        if (systemState.isSymbolStartFullWidth === undefined) {
+         systemState.isSymbolStartFullWidth = /[^\x01-\x7E\xA1-\xA5]/.test(lastChar);
+       };
       }
 
       
 
       // 回数と直前タイプに応じた記号と文字数を決定
       const isOdd = systemState.symbolCount % 2 !== 0;
-      const currentType = systemState.isSymbolStartFullWidth ? (isOdd ? 'full' : 'half') : (isOdd ? 'half' : 'full');
+      const startWithFull = systemState.isSymbolStartFullWidth && !systemState.isHyphenContinue;
+      const currentType = startWithFull ? (isOdd ? 'full' : 'half') : (isOdd ? 'half' : 'full');
       const unitChar = pair[currentType];
       const charAmount = Math.ceil(systemState.symbolCount / 2);
       const newSymbolStr = unitChar.repeat(charAmount);
 
-      const baseBuffer = systemState.activeBuffer.substring(0, systemState.activeBuffer.length - systemState.lastSymbolStrLength);
+      const baseBuffer = systemState.symbolBaseBuffer !== undefined ? systemState.symbolBaseBuffer : systemState.activeBuffer.substring(0, systemState.activeBuffer.length - systemState.lastSymbolStrLength);
       const baseKana = translateToJapanese(baseBuffer);
 
 
@@ -116,11 +154,12 @@ window.inputBasicKeys = async function inputBasicKeys(
       clearTimeout(debounceTimer);
 
      const isFullWidthSymbol = /[^\x01-\x7E\xA1-\xA5]/.test(newSymbolStr);
-      const targetConvertText = isFullWidthSymbol ? (baseKana + newSymbolStr) : baseKana;
-      const appendSuffix = isFullWidthSymbol ? "" : newSymbolStr;
+     const targetConvertText = isFullWidthSymbol ? (baseKana + newSymbolStr) : baseKana;
+     const appendSuffix = isFullWidthSymbol ? "" : newSymbolStr;
 
-      if (targetConvertText.length > 0) {
+    const hasOnlySymbols = /^[\u30fc\x21-\x2e\x3a-\x40\x5b-\x60\x7b-\x7e\uff01-\uff0f\uff3b-\uff40]+$/.test(targetConvertText);
 
+    if (targetConvertText.length > 0 && !hasOnlySymbols && key !== '-') {
         debounceTimer = setTimeout(async () => {
          let kanjiText = targetConvertText;
           if (typeof window.convertKanaToKanji === 'function') {
@@ -135,6 +174,9 @@ window.inputBasicKeys = async function inputBasicKeys(
               deleteLeftText(activeElement, systemState.lastVisualLength);
               insertText(activeElement, fullText);
               systemState.lastVisualLength = fullText.length;
+            }
+            else {
+              systemState.lastVisualLength = targetConvertText.length + appendSuffix.length;
             }
         }, 80);
       }
