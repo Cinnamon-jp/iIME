@@ -1,4 +1,4 @@
-window.inputBasicKeys = function inputBasicKeys(
+window.inputBasicKeys = async function inputBasicKeys(
   event, 
   key, 
   activeElement,
@@ -24,10 +24,15 @@ window.inputBasicKeys = function inputBasicKeys(
 
     const isEnglishWordMode = (event.shiftKey && !symbolPairs[key]) || systemState.isEnglishModeActive;
 
+    const isNumber = key.match(/^[0-9]$/);
     const currentSymbolSymbolKey = (event.shiftKey ? 'Shift+' : '') + key;
+
     if (currentSymbolSymbolKey !== systemState.lastSymbolKey) {
+      systemState.activeBuffer = systemState.activeBuffer;
       systemState.symbolCount = 0;
       systemState.lastSymbolStrLength = 0;
+      systemState.lastSymbolKey = currentSymbolSymbolKey;
+    } else {
       systemState.lastSymbolKey = currentSymbolSymbolKey;
     }
 
@@ -49,13 +54,19 @@ window.inputBasicKeys = function inputBasicKeys(
       systemState.isEnglishModeActive = true;
     }
 
-    else if (symbolPairs[key] && key in symbolPairs) {
+    else if ((symbolPairs[key] && key in symbolPairs) || isNumber) {
+
+
       systemState.symbolCount++;
-      const pair = symbolPairs[key];
+      
+     const pair = isNumber 
+        ? { half: key, full: String.fromCharCode(key.charCodeAt(0) + 0xfee0) } 
+        : symbolPairs[key];
+      let requestId = ++systemState.currentRequestId;
 
       // 初回入力時に、連打開始地点の直前文字が全角か判定して保持
       if (systemState.symbolCount === 1) {
-        let baseKana = translateToJapanese(systemState.activeBuffer);
+       let baseKana = translateToJapanese(systemState.activeBuffer);
         let lastChar = baseKana.length > 0 ? baseKana[baseKana.length - 1] : "";
         if (!lastChar) {
           const isEditable = activeElement.isContentEditable;
@@ -64,7 +75,13 @@ window.inputBasicKeys = function inputBasicKeys(
           const textBefore = textVal.substring(0, currentPos - systemState.lastVisualLength);
           lastChar = textBefore.length > 0 ? textBefore[textBefore.length - 1] : "";
         }
+
         systemState.isSymbolStartFullWidth = /[^\x01-\x7E\xA1-\xA5]/.test(lastChar);
+      }
+
+      if (systemState.lastSymbolStrLength === 0) {
+        systemState.activeBuffer = "";
+        systemState.lastVisualLength = 0;
       }
 
       // 回数と直前タイプに応じた記号と文字数を決定
@@ -77,30 +94,38 @@ window.inputBasicKeys = function inputBasicKeys(
       const baseBuffer = systemState.activeBuffer.substring(0, systemState.activeBuffer.length - systemState.lastSymbolStrLength);
       const baseKana = translateToJapanese(baseBuffer);
 
+
       systemState.activeBuffer = baseBuffer + newSymbolStr;
       systemState.lastSymbolStrLength = newSymbolStr.length;
 
       const currentKana = baseKana + newSymbolStr;
-      // 画面上の未確定描画を削除して新文字列を挿入
       deleteLeftText(activeElement, systemState.lastVisualLength);
       insertText(activeElement, currentKana);
       systemState.lastVisualLength = currentKana.length;
       // 自動漢字変換タイマーの発動
-      let requestId = ++systemState.currentRequestId;
-      clearTimeout(systemState.debounceTimer);
+  
+      clearTimeout(debounceTimer);
 
-      if (!Object.values(symbolPairs).some(p => newSymbolStr.endsWith(p.half))) {
+     const isFullWidthSymbol = /[^\x01-\x7E\xA1-\xA5]/.test(newSymbolStr);
+      const targetConvertText = isFullWidthSymbol ? (baseKana + newSymbolStr) : baseKana;
+      const appendSuffix = isFullWidthSymbol ? "" : newSymbolStr;
+
+      if (targetConvertText.length > 0) {
+
         debounceTimer = setTimeout(async () => {
-          if (typeof window.convertKanaToKanji === 'function' && baseKana.length > 0) {
-            const kanjiText = await window.convertKanaToKanji(baseKana);
-            if (requestId !== systemState.currentRequestId) return;
-            if (kanjiText && kanjiText !== baseKana) {
-              const fullText = kanjiText + newSymbolStr;
+         let kanjiText = targetConvertText;
+          if (typeof window.convertKanaToKanji === 'function') {
+           kanjiText = await window.convertKanaToKanji(targetConvertText);
+          } else if (typeof window.getKanjiCandidates === 'function') {
+           const candidates = await window.getKanjiCandidates(targetConvertText);
+            if (candidates && candidates.length > 0) kanjiText = candidates[0];
+          }
+          if (requestId !== systemState.currentRequestId) return;
+            if (kanjiText && kanjiText !== targetConvertText) {
+            const fullText = kanjiText + appendSuffix;
               deleteLeftText(activeElement, systemState.lastVisualLength);
               insertText(activeElement, fullText);
-              systemState.lastVisualLength = fullText.length;
             }
-          }
         }, 80);
       }
     }
