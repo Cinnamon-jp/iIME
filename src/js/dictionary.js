@@ -46,6 +46,7 @@ const symbolPairs = {
 
 // 2. 【ひらがな辞書】
 const jpDictionary = {
+    ".": "。", ",": "、",
     "tyu": "ちゅ", "tya": "ちゃ", "tyo": "ちょ",
     "syu": "しゅ", "sya": "しゃ", "syo": "しょ",
     "kyu": "きゅ", "kya": "きゃ", "kyo": "きょ",

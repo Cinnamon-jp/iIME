@@ -27,14 +27,7 @@ window.inputBasicKeys = async function inputBasicKeys(
     const isNumber = key.match(/^[0-9]$/);
     const currentSymbolSymbolKey = (event.shiftKey ? 'Shift+' : '') + key;
 
-    if (currentSymbolSymbolKey !== systemState.lastSymbolKey) {
-      systemState.activeBuffer = systemState.activeBuffer;
-      systemState.symbolCount = 0;
-      systemState.lastSymbolStrLength = 0;
-      systemState.lastSymbolKey = currentSymbolSymbolKey;
-    } else {
-      systemState.lastSymbolKey = currentSymbolSymbolKey;
-    }
+   
 
     // 英単語モードの場合の処理
     if (isEnglishWordMode) {
@@ -53,20 +46,38 @@ window.inputBasicKeys = async function inputBasicKeys(
       systemState.activeBuffer = "";
       systemState.isEnglishModeActive = true;
     }
+ 
 
     else if ((symbolPairs[key] && key in symbolPairs) || isNumber) {
+
+      
+      const baseBufferPrev = systemState.activeBuffer.substring(0, systemState.activeBuffer.length - systemState.lastSymbolStrLength);
+      if (baseBufferPrev.length > 0) {
+        handleCustomIME(activeElement, key);
+        return;
+      }
+
+     if (currentSymbolSymbolKey !== systemState.lastSymbolKey) {
+        systemState.activeBuffer = "";
+        systemState.lastVisualLength = 0;
+        systemState.symbolCount = 0;
+        systemState.lastSymbolStrLength = 0;
+        systemState.lastSymbolKey = currentSymbolSymbolKey;
+      }
 
 
       systemState.symbolCount++;
       
-     const pair = isNumber 
+      const pair = isNumber 
         ? { half: key, full: String.fromCharCode(key.charCodeAt(0) + 0xfee0) } 
         : symbolPairs[key];
       let requestId = ++systemState.currentRequestId;
 
       // 初回入力時に、連打開始地点の直前文字が全角か判定して保持
-      if (systemState.symbolCount === 1) {
-       let baseKana = translateToJapanese(systemState.activeBuffer);
+     if (systemState.symbolCount === 1) {
+       
+        const baseBuf = systemState.activeBuffer.substring(0, systemState.activeBuffer.length - systemState.lastSymbolStrLength);
+        let baseKana = translateToJapanese(baseBuf);
         let lastChar = baseKana.length > 0 ? baseKana[baseKana.length - 1] : "";
         if (!lastChar) {
           const isEditable = activeElement.isContentEditable;
@@ -76,13 +87,11 @@ window.inputBasicKeys = async function inputBasicKeys(
           lastChar = textBefore.length > 0 ? textBefore[textBefore.length - 1] : "";
         }
 
+
         systemState.isSymbolStartFullWidth = /[^\x01-\x7E\xA1-\xA5]/.test(lastChar);
       }
 
-      if (systemState.lastSymbolStrLength === 0) {
-        systemState.activeBuffer = "";
-        systemState.lastVisualLength = 0;
-      }
+      
 
       // 回数と直前タイプに応じた記号と文字数を決定
       const isOdd = systemState.symbolCount % 2 !== 0;
@@ -125,6 +134,7 @@ window.inputBasicKeys = async function inputBasicKeys(
             const fullText = kanjiText + appendSuffix;
               deleteLeftText(activeElement, systemState.lastVisualLength);
               insertText(activeElement, fullText);
+              systemState.lastVisualLength = fullText.length;
             }
         }, 80);
       }
