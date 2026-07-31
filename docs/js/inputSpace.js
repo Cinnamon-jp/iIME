@@ -20,7 +20,7 @@ window.inputSpace = async function inputSpace(
       systemState.isEnglishModeActive = false; // フラグを解除（これで通常モードに戻る）
       systemState.activeBuffer = "";
       systemState.lastVisualLength = 0;
-      if (typeof window.triggerGlow === 'function') window.triggerGlow(activeElement);
+      if (typeof window.triggerSubtleGlow === 'function') window.triggerSubtleGlow(activeElement);
       return; // 1回目はスペースを入れずに終了
     }
 
@@ -81,7 +81,7 @@ window.inputSpace = async function inputSpace(
 
       systemState.activeBuffer = "";
       systemState.lastVisualLength = 0;
-      if (typeof window.triggerGlow === 'function') window.triggerGlow(activeElement);
+      if (typeof window.triggerSubtleGlow === 'function') window.triggerSubtleGlow(activeElement);
     }
 
     else if ((isStartWithUpper || (isPrevSpace && isEnglishDict) || isNotJapanese) && systemState.activeBuffer.length > 0) {
@@ -93,7 +93,7 @@ window.inputSpace = async function inputSpace(
 
       systemState.activeBuffer = "";
       systemState.lastVisualLength = 0;
-      if (typeof window.triggerGlow === 'function') window.triggerGlow(activeElement);
+      if (typeof window.triggerSubtleGlow === 'function') window.triggerSubtleGlow(activeElement);
 
     } else {
       const rawHiragana = translateToJapanese(systemState.activeBuffer) + symbolSuffix;
@@ -105,7 +105,7 @@ window.inputSpace = async function inputSpace(
 
       if (isFirstSpace) {
         // 未確定文字がある場合（1回目：確定処理）
-        if (systemState.lastVisualLength > 0 && typeof window.triggerGlow === 'function') window.triggerGlow(targetElement);
+        if (systemState.lastVisualLength > 0 && typeof window.triggerSubtleGlow === 'function') window.triggerSubtleGlow(targetElement);
 
         systemState.activeBuffer = "";
         systemState.lastVisualLength = 0;

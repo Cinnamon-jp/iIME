@@ -42,7 +42,7 @@ document.addEventListener('keydown', function (event) {
   if (event.key === 'Enter') {
     const textToCommit = activeElement.isContentEditable ? activeElement.innerText : (activeElement.value || "");
     if (textToCommit.length > 0) {
-      if (typeof window.triggerGlow === 'function') window.triggerGlow(activeElement);
+      if (typeof window.triggerEnterEffect === 'function') window.triggerEnterEffect(activeElement, textToCommit);
       if (typeof window.showCommittedMessage === 'function') {
         window.showCommittedMessage(textToCommit);
       }
@@ -51,6 +51,8 @@ document.addEventListener('keydown', function (event) {
       } else {
         activeElement.value = '';
       }
+    } else {
+      if (typeof window.triggerEnterEffect === 'function') window.triggerEnterEffect(activeElement, "");
     }
     clearAllBuffers();
     return;

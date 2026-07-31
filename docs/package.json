@@ -1,0 +1,12 @@
+{
+  "name": "iime-demo",
+  "version": "1.0.0",
+  "description": "iIME Web Live Demo Website",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "scripts": {
+    "start": "serve .",
+    "sync": "cp ../src/js/dictionary.js ../src/js/content3.js ../src/js/content.js ../src/js/style.js js/"
+  }
+}
