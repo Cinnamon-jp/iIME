@@ -5,7 +5,6 @@
   "license": "ISC",
   "author": "",
   "type": "module",
-  "main": "js/index.js",
   "scripts": {
     "start": "serve .",
     "sync": "cp ../src/js/dictionary.js ../src/js/content3.js ../src/js/content.js ../src/js/style.js js/"

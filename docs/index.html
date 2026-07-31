@@ -6,50 +6,65 @@
   <title>iIME - オンラインデモ</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600;700&family=Shippori+Mincho:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
   <div class="container">
+    <div id="committed-toast" class="committed-toast" aria-live="polite"></div>
     <header class="header">
-      <h1 class="title">iIME デモ</h1>
-      <p class="subtitle">ローマ字を入力するとリアルタイムにひらがな・漢字に変換されます</p>
+      <h1 class="title">iIMEデモページ</h1>
+      <p class="subtitle">例文：我々は宇宙人だ</p>
     </header>
 
     <main class="demo-section">
-      <div class="input-group">
-        <label for="search-input" class="input-label">入力フィールド</label>
-        <input 
-          type="text" 
-          id="search-input" 
-          name="q" 
-          class="demo-input" 
-          placeholder="ローマ字を入力してください（例: kanji, nihongo, arigatou）"
-          autocomplete="off"
-          autofocus
-        >
-      </div>
+      <div class="demo-grid">
+        <!-- iIME あり -->
+        <div class="input-card">
+          <div class="card-header">
+            <span class="card-badge badge-active">iIME あり</span>
+            <span class="card-desc">自動かな漢字変換</span>
+          </div>
+          <div class="input-wrapper">
+            <input 
+              type="text" 
+              id="search-input" 
+              name="q" 
+              class="demo-input ime-enabled" 
+              placeholder="半角ローマ字を入力"
+              autocomplete="off"
+              autofocus
+            >
+          </div>
+          <div class="hint-container">
+            <span class="hint-item"><kbd>Tab</kbd> 候補切替</span>
+            <span class="hint-divider">•</span>
+            <span class="hint-item"><kbd>Space</kbd> 変換確定</span>
+            <span class="hint-divider">•</span>
+            <span class="hint-item"><kbd>Enter</kbd> 確定</span>
+          </div>
+        </div>
 
-      <div class="input-group">
-        <label for="demo-textarea" class="input-label">複数行テキストエリア</label>
-        <textarea 
-          id="demo-textarea" 
-          name="q" 
-          class="demo-textarea" 
-          rows="4" 
-          placeholder="文章を入力してください（例: kyouha iitenki desune.）"
-        ></textarea>
-      </div>
-
-      <div class="guide-card">
-        <h3>💡 操作方法</h3>
-        <ul>
-          <li><strong>文字入力</strong>: アルファベットを入力するとリアルタイムでひらがな変換</li>
-          <li><strong>自動漢字変換</strong>: 入力後、自動で最適な漢字に変換</li>
-          <li><strong>Tab キー</strong>: 別の漢字変換候補に切り替え</li>
-          <li><strong>Space キー</strong>: 確定・英単語モード切り替え</li>
-          <li><strong>Shift + アルファベット</strong>: 大文字英単語モード</li>
-        </ul>
+        <!-- iIME なし -->
+        <div class="input-card">
+          <div class="card-header">
+            <span class="card-badge badge-normal">iIME なし</span>
+            <span class="card-desc">普通のテキスト入力</span>
+          </div>
+          <div class="input-wrapper">
+            <input 
+              type="text" 
+              id="normal-input" 
+              name="q_normal" 
+              class="demo-input" 
+              placeholder="通常のテキストを入力"
+              autocomplete="off"
+            >
+          </div>
+          <div class="hint-container">
+            <span class="hint-item"><kbd>Enter</kbd> 確定</span>
+          </div>
+        </div>
       </div>
     </main>
   </div>
