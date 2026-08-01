@@ -12,10 +12,17 @@ const systemState = {
 }
 
 
-// 全角二重入力ブロック
+// iIMEの変換処理が有効な要素かを判定する
+function isImeEnabled(element) {
+  return element && (element.classList.contains('ime-enabled') || element.id === 'search-input');
+}
+
+// 全角二重入力ブロック（iIME有効な入力欄のみ）
 document.addEventListener('input', function (event) {
   const activeElement = document.activeElement;
   if (!activeElement || (activeElement.tagName !== 'INPUT' && activeElement.tagName !== 'TEXTAREA' && !activeElement.isContentEditable)) return;
+  if (!isImeEnabled(activeElement)) return;
+
   if (event.inputType === "insertCompositionText" || event.inputType === "insertText") {
     if (event.data) {
       deleteLeftText(activeElement, event.data.length);
@@ -30,11 +37,35 @@ document.addEventListener('keydown', function (event) {
   if (event.ctrlKey || event.metaKey) {
     return;
   }
-  //event.codeはKeyAのような形式、event.keyはaのような形式
+
+  // Enterキーで入力欄をクリアし、ページ上部に確定文字列を表示してリセットする（iIMEあり・なし共通動作）
+  if (event.key === 'Enter') {
+    const textToCommit = activeElement.isContentEditable ? activeElement.innerText : (activeElement.value || "");
+    if (textToCommit.length > 0) {
+      if (typeof window.triggerGlow === 'function') window.triggerGlow(activeElement);
+      if (typeof window.showCommittedMessage === 'function') {
+        window.showCommittedMessage(textToCommit);
+      }
+      if (activeElement.isContentEditable) {
+        activeElement.innerText = '';
+      } else {
+        activeElement.value = '';
+      }
+    }
+    clearAllBuffers();
+    return;
+  }
+
+  // iIME無効な入力欄の場合は標準のブラウザ動作にする
+  if (!isImeEnabled(activeElement)) {
+    return;
+  }
+
+  // event.codeはKeyAのような形式、event.keyはaのような形式
   let key = "";
   if (event.code && event.code.startsWith("Key")) {
-    key = event.code.replace("Key", "").toLowerCase();//Keyを除去してアルファベットのみに
-  } else {//アルファベット以外のキーはevent.keyを使う
+    key = event.code.replace("Key", "").toLowerCase(); // Keyを除去してアルファベットのみに
+  } else { // アルファベット以外のキーはevent.keyを使う
     key = event.key;
   }
 
@@ -80,21 +111,13 @@ document.addEventListener('keydown', function (event) {
     );
   } 
 
-
-
   else if (event.key === ' ') {
-    window.inputSpace(
+    inputSpace(
       event,
       activeElement,
       debounceTimer,
       systemState
     );
-  }
-
-  //Enterキーで全ての記憶を消去してリセットする
-  else if (event.key === 'Enter') {
-    if (systemState.activeBuffer.length > 0 && typeof window.triggerGlow === 'function') window.triggerGlow(activeElement);
-    clearAllBuffers();
   }
 
   else if (event.key === 'Backspace') {
@@ -122,6 +145,7 @@ function handleCustomIME(activeElement, key) {
 
   systemState.activeBuffer += key;
 
+  // 1. レスポンス維持のため、まずひらがなを表示
   let currentKana = translateToJapanese(systemState.activeBuffer);
   insertText(activeElement, currentKana);
   systemState.lastVisualLength = currentKana.length;
